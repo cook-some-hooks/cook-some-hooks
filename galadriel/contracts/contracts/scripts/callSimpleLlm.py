@@ -1,73 +1,88 @@
 import os
-import json
+import time
 from web3 import Web3
-from solcx import compile_standard, install_solc
 from dotenv import load_dotenv
+import settings
 
-# Load environment variables
 load_dotenv()
 
-# Load settings
-CHAIN_ID = int(os.getenv("CHAIN_ID", "696969"))
-RPC_URL = os.getenv("RPC_URL", "https://devnet.galadriel.com")
-PRIVATE_KEY = os.getenv("PRIVATE_KEY")
-ORACLE_ADDRESS = os.getenv("ORACLE_ADDRESS")
+w3 = Web3(Web3.HTTPProvider(settings.RPC_URL))
+contract_address = settings.QUICKSTART_CONTRACT_ADDRESS
+private_key = settings.PRIVATE_KEY
 
-if not ORACLE_ADDRESS:
-    raise ValueError("ORACLE_ADDRESS env variable is not set.")
+if not w3.is_connected():
+    raise ConnectionError("Failed to connect to the Ethereum testnet")
 
-# Connect to the Ethereum node
-web3 = Web3(Web3.HTTPProvider(RPC_URL))
-if not web3.is_connected():
-    raise ConnectionError("Failed to connect to the Ethereum node.")
+# Contract ABI
+contract_abi = [
+    {
+        "constant": False,
+        "inputs": [
+            {
+                "name": "_message",
+                "type": "string"
+            }
+        ],
+        "name": "sendMessage",
+        "outputs": [],
+        "payable": False,
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "constant": True,
+        "inputs": [],
+        "name": "response",
+        "outputs": [
+            {
+                "name": "",
+                "type": "string"
+            }
+        ],
+        "payable": False,
+        "stateMutability": "view",
+        "type": "function"
+    }
+]
 
 # Get the account from the private key
-account = web3.eth.account.from_key(PRIVATE_KEY)
+account = w3.eth.account.from_key(private_key)
+w3.eth.default_account = account.address
 
-# Compile the contract
-install_solc('0.8.0')
-with open("contracts/OpenAiSimpleLLM.sol", "r") as file:
-    contract_source_code = file.read()
+# Create contract instance
+contract = w3.eth.contract(address=contract_address, abi=contract_abi)
 
-compiled_sol = compile_standard({
-    "language": "Solidity",
-    "sources": {
-        "OpenAiSimpleLLM.sol": {
-            "content": contract_source_code
-        }
-    },
-    "settings": {
-        "outputSelection": {
-            "*": {
-                "*": ["abi", "metadata", "evm.bytecode", "evm.sourceMap"]
-            }
-        }
-    }
-}, solc_version='0.8.0')
+def get_user_input():
+    return input("Enter an image description: ")
 
-# Get contract data
-contract_id, contract_interface = compiled_sol['contracts']['OpenAiSimpleLLM.sol']['OpenAiSimpleLLM'].items()
-bytecode = contract_interface['evm']['bytecode']['object']
-abi = contract_interface['abi']
+def main():
+    message = get_user_input()
 
-# Create the contract instance
-OpenAiSimpleLLM = web3.eth.contract(abi=abi, bytecode=bytecode)
+    # Send transaction
+    tx = contract.functions.sendMessage(message).build_transaction({
+        'from': account.address,
+        'nonce': w3.eth.get_transaction_count(account.address),
+        'gas': 2000000,
+        'gasPrice': w3.to_wei('50', 'gwei')
+    })
 
-# Build the transaction
-transaction = OpenAiSimpleLLM.constructor(ORACLE_ADDRESS).buildTransaction({
-    'chainId': CHAIN_ID,
-    'gas': 2000000,
-    'gasPrice': web3.toWei('20', 'gwei'),
-    'nonce': web3.eth.getTransactionCount(account.address),
-})
+    signed_tx = w3.eth.account.sign_transaction(tx, private_key)
+    tx_hash = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+    receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
+    print(f"Transaction sent, hash: {receipt.transactionHash.hex()}.\nExplorer: https://explorer.galadriel.com/tx/{receipt.transactionHash.hex()}")
+    print(f"Image generation started with message: \"{message}\"")
 
-# Sign the transaction
-signed_txn = web3.eth.account.sign_transaction(transaction, private_key=PRIVATE_KEY)
+    # Poll for response
+    response = contract.functions.response().call()
+    new_response = response
 
-# Send the transaction
-tx_hash = web3.eth.sendRawTransaction(signed_txn.rawTransaction)
+    print("Waiting for response: ", end="", flush=True)
+    while new_response == response:
+        time.sleep(1)
+        new_response = contract.functions.response().call()
+        print(".", end="", flush=True)
 
-# Wait for the transaction receipt
-tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash)
+    print(f"\nImage generation completed, image URL: {new_response}")
 
-print(f"OpenAiSimpleLLM contract deployed to {tx_receipt.contractAddress}")
+if __name__ == "__main__":
+    main()
