@@ -1,4 +1,5 @@
 "use client";
+import { HeroHighlightComponent } from "@/components/hero-highlight";
 import Connect from "../components/connect";
 import { useAccount, useDisconnect } from "wagmi";
 
@@ -7,7 +8,7 @@ export default function Home() {
   const { disconnect } = useDisconnect();
   console.log(address);
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
+    <main className="">
       <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
         <p>My dApp</p>
         <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:size-auto lg:bg-none">
@@ -30,6 +31,7 @@ export default function Home() {
           </div>
         )}
       </div>
+      <HeroHighlightComponent />
     </main>
   );
 }
