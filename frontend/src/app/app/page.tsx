@@ -8,15 +8,8 @@ import { cn } from "../../../lib/utils";
 import { FollowerPointerCard } from "@/components/ui/following-pointer";
 import { NavbarApp } from "@/components/NavbarApp";
 import { HeroHighlight } from "@/components/ui/hero-highlight";
-import {
-  IconBrandGithub,
-  IconBrandGoogle,
-  IconBrandOnlyfans,
-} from "@tabler/icons-react";
+import { IconBrandGithub, IconBrandGoogle, IconBrandOnlyfans } from "@tabler/icons-react";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
-import { Option } from "@/components/ui/option";
 import { TextArea } from "@/components/ui/textarea";
 import CoinSelector from "@/components/tokens/CoinSelector";
 
@@ -88,8 +81,6 @@ export default function Home() {
                           <Image src={token.logoURI} alt={token.name} width={24} height={24} />
                         </div>
                         <span>{token.name} ({token.symbol})</span>
-                        <div>Chain ID: {token.chainId}</div>
-                        <div>Address: {token.address}</div>
                       </div>
                     ))}
                   </div>
