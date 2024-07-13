@@ -1,0 +1,25 @@
+{
+  "name": "axiom-std",
+  "version": "0.1.7",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "updateShasum": "./script/replaceSha.sh",
+    "build": "tsc && esbuild dist/axiom-std-cli.js --bundle --platform=node --packages=external > build/axiom-std-cli-build.js && npm run updateShasum"
+  },
+  "keywords": [],
+  "author": "Intrinsic Technologies",
+  "license": "MIT",
+  "dependencies": {
+    "@axiom-crypto/circuit": "2.0.9",
+    "@axiom-crypto/client": "2.0.9",
+    "commander": "^11.1.0",
+    "dotenv": "^16.4.5",
+    "viem": "^2.9.7"
+  },
+  "devDependencies": {
+    "@types/node": "18.15.13",
+    "esbuild": "^0.20.2",
+    "typescript": "^5.4.3"
+  }
+}

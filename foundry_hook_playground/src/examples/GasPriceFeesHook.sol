@@ -7,7 +7,7 @@ import {Hooks} from "v4-core/src/libraries/Hooks.sol";
 import {PoolKey} from "v4-core/src/types/PoolKey.sol";
 import {BalanceDelta} from "v4-core/src/types/BalanceDelta.sol";
 import {LPFeeLibrary} from "v4-core/src/libraries/LPFeeLibrary.sol";
-import {BeforeSwapDelta, toBeforeSwapDelta} from "v4-core/src/types/BeforeSwapDelta.sol";
+import {BeforeSwapDelta, BeforeSwapDeltaLibrary} from "v4-core/src/types/BeforeSwapDelta.sol";
 
 contract GasPriceFeesHook is BaseHook {
     using LPFeeLibrary for uint24;
@@ -79,7 +79,7 @@ contract GasPriceFeesHook is BaseHook {
     {
         uint24 fee = getFee();
         manager.updateDynamicLPFee(key, fee);
-        return (this.beforeSwap.selector, toBeforeSwapDelta(0, 0), 0);
+        return (this.beforeSwap.selector, BeforeSwapDeltaLibrary.ZERO_DELTA, 0);
     }
 
     function afterSwap(
