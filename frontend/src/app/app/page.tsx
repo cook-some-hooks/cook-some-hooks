@@ -18,19 +18,39 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Option } from "@/components/ui/option";
 import { TextArea } from "@/components/ui/textarea";
+import CoinSelector from "@/components/tokens/CoinSelector";
+
+interface Token {
+  chainId: number;
+  address: string;
+  name: string;
+  symbol: string;
+  decimals: number;
+  logoURI: string;
+}
+
 export default function Home() {
   const { address, isConnected } = useAccount();
   const { disconnect } = useDisconnect();
   console.log(address);
+
+  const [isTransitioned, setIsTransitioned] = useState(false);
+  const [selectedTokens, setSelectedTokens] = useState<Token[]>([]);
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     console.log("Form submitted");
+    console.log("Selected Tokens:", selectedTokens);
   };
-  const [isTransitioned, setIsTransitioned] = useState(false);
 
   const handleButtonClick = () => {
     setIsTransitioned(true);
   };
+
+  const handleTokenSelect = (tokens: Token[]) => {
+    setSelectedTokens(tokens);
+  };
+
   return (
     <main className="">
       <NavbarApp />
@@ -48,14 +68,12 @@ export default function Home() {
             }`}
           >
             <h2 className="font-bold text-xl text-neutral-800 dark:text-neutral-200">
-              Cook your Hoook
+              Cook your Hook
             </h2>
             <form className="my-8 mb-0" onSubmit={handleSubmit}>
               <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 mb-4">
                 <LabelInputContainer>
-                  <Select>
-                    <option value="1">1</option>
-                  </Select>
+                  <CoinSelector onSelectTokens={handleTokenSelect} />
                 </LabelInputContainer>
                 <LabelInputContainer>
                   <Select>
@@ -67,7 +85,7 @@ export default function Home() {
                 <Label htmlFor="prompt">Hook prompt</Label>
                 <TextArea
                   id="prompt"
-                  placeholder="Enter your prompt here for cooking your hook "
+                  placeholder="Enter your prompt here for cooking your hook"
                 />
               </LabelInputContainer>
               <button
