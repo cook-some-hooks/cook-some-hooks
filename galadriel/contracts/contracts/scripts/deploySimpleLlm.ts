@@ -11,7 +11,7 @@ async function main() {
 
 
 async function deploySimpleLlm(oracleAddress: string) {
-  const agent = await ethers.deployContract("OpenAiSimpleLLM", [oracleAddress], {});
+  const agent = await ethers.deployContract("SimpleLLM", [oracleAddress], {}); // OpenAiSimpleLLM, AnthropicSimpleLLM
 
   await agent.waitForDeployment();
 
