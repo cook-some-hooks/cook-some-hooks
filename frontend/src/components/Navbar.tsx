@@ -10,7 +10,12 @@ export function NavbarComp() {
   return (
     <nav className="bg-white border-gray-200 dark:bg-black bg-opacity-15 bg-transparent backdrop-blur-sm">
       <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
-        <a className="flex items-center ">
+        <a
+          className="flex items-center cursor-pointer"
+          onClick={() => {
+            navigate.push("/");
+          }}
+        >
           <img src="/logo.png" className="h-14" alt=" Logo" />
           <span className="self-center text-2xl font-Jetmono whitespace-nowrap dark:text-white">
             'Cook some Hook
@@ -27,7 +32,7 @@ export function NavbarComp() {
                 About
               </a> */}
               <button
-                className="cursor-none inline-flex h-12 animate-shimmer items-center justify-center rounded-md border border-white bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:ring-offset-slate-50"
+                className=" inline-flex h-12 animate-shimmer items-center justify-center rounded-md border border-white/[0.2] bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:ring-offset-slate-50"
                 onClick={() => {
                   navigate.push("/app");
                 }}

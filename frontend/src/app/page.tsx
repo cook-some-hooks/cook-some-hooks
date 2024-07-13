@@ -4,6 +4,7 @@ import { useAccount, useDisconnect } from "wagmi";
 import { NavbarComp } from "@/components/Navbar";
 import { FollowerPointerCard } from "@/components/ui/following-pointer";
 import WorldcoinVerification from "@/components/worldcoin/WorldcoinVerification";
+import { EvervaultCard } from "@/components/ui/evervault-card";
 
 export default function Home() {
   const { address, isConnected } = useAccount();
@@ -16,6 +17,7 @@ export default function Home() {
         {/* <p>My dApp</p> */}
         <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:size-auto lg:bg-none"></div>
       </div>
+
       {/* <div>
           {isConnected && (
             <button className="border p-2 rounded" onClick={() => disconnect()}>
