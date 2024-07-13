@@ -53,7 +53,7 @@ w3.eth.default_account = account.address
 contract = w3.eth.contract(address=contract_address, abi=contract_abi)
 
 def get_user_input():
-    return input("Enter an image description: ")
+    return input("Prompt: ")
 
 def main():
     message = get_user_input()
@@ -70,7 +70,7 @@ def main():
     tx_hash = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
     receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
     print(f"Transaction sent, hash: {receipt.transactionHash.hex()}.\nExplorer: https://explorer.galadriel.com/tx/{receipt.transactionHash.hex()}")
-    print(f"Image generation started with message: \"{message}\"")
+    print(f"Response: \"{message}\"")
 
     # Poll for response
     response = contract.functions.response().call()

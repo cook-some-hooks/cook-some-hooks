@@ -40,7 +40,7 @@ async function main() {
     console.log(".");
   }
 
-  console.log(`Image generation completed, image URL: ${newResponse}`)
+  console.log(`Response: ${newResponse}`)
 
 }
 
@@ -59,7 +59,7 @@ async function getUserInput(): Promise<string | undefined> {
   }
 
   try {
-    const input = await question("Enter an image description: ")
+    const input = await question("Prompt: ")
     rl.close()
     return input
   } catch (err) {
