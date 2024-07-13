@@ -15,7 +15,7 @@ contract WhitelistHook is BaseHook, Ownable {
     event AddedToWhitelist(address indexed addr);
     event RemovedFromWhitelist(address indexed addr);
 
-    constructor(IPoolManager _poolManager) BaseHook(_poolManager) Ownable(msg.sender) {}
+    constructor(IPoolManager _poolManager) BaseHook(_poolManager) {}
 
     function getHookPermissions() public pure override returns (Hooks.Permissions memory) {
         return Hooks.Permissions({
