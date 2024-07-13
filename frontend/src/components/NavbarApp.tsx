@@ -51,17 +51,7 @@ export function NavbarApp() {
                 </button>
               )}
 
-              {isConnected && (
-                <div>
-                  <w3m-button />
-                  {/* <span
-                    className="text-red-500 px-5"
-                    onClick={() => disconnect()}
-                  >
-                    X
-                  </span> */}
-                </div>
-              )}
+              {isConnected && <w3m-button />}
             </li>
           </ul>
         </div>
