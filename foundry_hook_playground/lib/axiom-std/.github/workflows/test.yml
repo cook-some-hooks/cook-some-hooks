@@ -1,0 +1,89 @@
+name: Foundry
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - "**"
+
+jobs:
+  test:
+    name: Foundry Tests Linux
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Build CLI
+        run: |
+          npm install
+          mv build/axiom-std-cli-build.js build/axiom-std-cli-temp-build.js
+          cp src/AxiomCli.sol src/AxiomCli.sol.temp
+          npm run build
+          diff build/axiom-std-cli-build.js build/axiom-std-cli-temp-build.js
+          diff src/AxiomCli.sol src/AxiomCli.sol.temp
+          rm build/axiom-std-cli-temp-build.js
+          rm src/AxiomCli.sol.temp
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Check forge version
+        run: forge --version
+
+      - name: Check forge tree
+        run: forge tree
+
+      - name: Run Foundry tests
+        run: |
+          export PROVIDER_URI_SEPOLIA=${{ secrets.PROVIDER_URI_SEPOLIA }}
+          export PROVIDER_URI_BASE=${{ secrets.PROVIDER_URI_BASE }}
+          RUST_BACKTRACE=1 forge test -vvv
+
+  test-mac:
+    name: Foundry Tests Mac
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Build CLI
+        run: |
+          npm install
+          mv build/axiom-std-cli-build.js build/axiom-std-cli-temp-build.js
+          cp src/AxiomCli.sol src/AxiomCli.sol.temp
+          npm run build
+          diff build/axiom-std-cli-build.js build/axiom-std-cli-temp-build.js
+          diff src/AxiomCli.sol src/AxiomCli.sol.temp
+          rm build/axiom-std-cli-temp-build.js
+          rm src/AxiomCli.sol.temp
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Check forge version
+        run: forge --version
+
+      - name: Check forge tree
+        run: forge tree
+
+      - name: Run Foundry tests
+        run: |
+          export PROVIDER_URI_SEPOLIA=${{ secrets.PROVIDER_URI_SEPOLIA }}
+          export PROVIDER_URI_BASE=${{ secrets.PROVIDER_URI_BASE }}
+          RUST_BACKTRACE=1 forge test -vvv
