@@ -11,12 +11,19 @@ interface Token {
 }
 
 const popularTokens: Token[] = [
-  { chainId: 1, address: "0x0000000000000000000000000000000000000000", name: "Ethereum", symbol: "ETH", decimals: 18, logoURI: "/tokens/eth.png" },
-  { chainId: 1, address: "0x1f9840a85d5af5bf1d1762f925bdaddc4201f984", name: "Uniswap", symbol: "UNI", decimals: 18, logoURI: "/tokens/uni.png" },
-  { chainId: 1, address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", name: "USD Coin", symbol: "USDC", decimals: 6, logoURI: "/tokens/usdc.png" },
-  { chainId: 1, address: "0xdAC17F958D2ee523a2206206994597C13D831ec7", name: "Tether", symbol: "USDT", decimals: 6, logoURI: "/tokens/usdt.png" },
-];
+    { chainId: 1, address: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", name: "Wrapped Ether", symbol: "WETH", decimals: 18, logoURI: "/tokens/eth.png" },
+    { chainId: 1, address: "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984", name: "Uniswap", symbol: "UNI", decimals: 18, logoURI: "/tokens/uni.png" },
+    { chainId: 1, address: "0x152649eA73beAb28c5b49B26eb48f7EAD6d4c898", name: "PancakeSwap Token", symbol: "CAKE", decimals: 18, logoURI: "/tokens/cake.png" },
+    { chainId: 1, address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", name: "USD Coin", symbol: "USDC", decimals: 6, logoURI: "/tokens/usdc.png" },
+    { chainId: 1, address: "0xdAC17F958D2ee523a2206206994597C13D831ec7", name: "Tether", symbol: "USDT", decimals: 6, logoURI: "/tokens/usdt.png" },
+    { chainId: 1, address: "0x514910771AF9Ca656af840dff83E8264EcF986CA", name: "ChainLink Token", symbol: "LINK", decimals: 18, logoURI: "/tokens/link.png" },
+    { chainId: 1, address: "0x85F17Cf997934a597031b2E18a9aB6ebD4B9f6a4", name: "NEAR", symbol: "NEAR", decimals: 24, logoURI: "/tokens/near.png" },
+    { chainId: 1, address: "0xB50721BCf8d664c30412Cfbc6cf7a15145234ad1", name: "Arbitrum", symbol: "ARB", decimals: 18, logoURI: "/tokens/arb.png" },
+    { chainId: 1, address: "0xc944E90C64B2c07662A292be6244BDf05Cda44a7", name: "Graph Token", symbol: "GRT", decimals: 18, logoURI: "/tokens/grt.png" },
+    { chainId: 1, address: "0xC18360217D8F7Ab5e7c516566761Ea12Ce7F9D72", name: "Ethereum Name Service", symbol: "ENS", decimals: 18, logoURI: "/tokens/ens.png" },
+    { chainId: 1, address: "0x111111111117dc0aa78b770fa6a738034120c302", name: "1 inch", symbol: "1INCH", decimals: 18, logoURI: "/tokens/1inch.png" },
 
+  ];
 interface CoinSelectorProps {
   onSelectTokens: (tokens: Token[]) => void;
 }
