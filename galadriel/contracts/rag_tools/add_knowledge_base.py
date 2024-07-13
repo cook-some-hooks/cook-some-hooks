@@ -35,8 +35,8 @@ if __name__ == "__main__":
         description="Upload a directory to IPFS as a vector Database",
     )
     parser.add_argument("-d", "--directory", required=True)
-    parser.add_argument("-s", "--chunk-size", type=int, default=8000)
-    parser.add_argument("-o", "--chunk-overlap", type=int, default=100)
+    parser.add_argument("-s", "--chunk-size", type=int, default=3000)
+    parser.add_argument("-o", "--chunk-overlap", type=int, default=200)
     args = parser.parse_args()
 
     assert settings.STORAGE_KEY, "PINATA_API_KEY missing from .env"

@@ -14,7 +14,7 @@ async function main() {
   if (!rpcUrl) throw Error("Missing RPC_URL in .env")
   const privateKey = process.env.PRIVATE_KEY_GALADRIEL
   if (!privateKey) throw Error("Missing PRIVATE_KEY in .env")
-  const contractAddress = process.env.CHAT_CONTRACT_ADDRESS
+  const contractAddress = process.env.RAG_CONTRACT_ADDRESS
   if (!contractAddress) throw Error("Missing CHAT_CONTRACT_ADDRESS in .env")
 
   const provider = new ethers.JsonRpcProvider(rpcUrl)
@@ -40,12 +40,20 @@ async function main() {
   }
 
   let allMessages: Message[] = []
+
+  let hookCode = "";
+  let finished = false;
   // Run the chat loop: read messages and send messages
-  while (true) {
+  while (!finished) {
     const newMessages: Message[] = await getNewMessages(contract, chatId, allMessages.length);
     if (newMessages) {
       for (let message of newMessages) {
-        console.log(`${message.role}: ${message.content}`)
+        if (message.role == "assistant") {
+            console.log("Assistant finished generating code")
+            hookCode = message.content;
+            finished = true;
+            break
+        }
         allMessages.push(message)
         if (allMessages.at(-1)?.role == "assistant") {
           const message = getUserInput()
@@ -57,6 +65,8 @@ async function main() {
     }
     await new Promise(resolve => setTimeout(resolve, 2000))
   }
+
+  console.log(hookCode);
 
 }
 
