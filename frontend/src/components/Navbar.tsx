@@ -3,8 +3,10 @@ import React, { useState } from "react";
 import { HoveredLink, Menu, MenuItem, ProductItem } from "./ui/navbar-menu";
 import { cn } from "../../lib/utils";
 import ConnectButton from "./connect";
+import { useRouter } from "next/navigation";
 
 export function NavbarComp() {
+  const navigate = useRouter();
   return (
     <nav className="bg-white border-gray-200 dark:bg-black bg-opacity-15 bg-transparent backdrop-blur-sm">
       <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
@@ -24,7 +26,12 @@ export function NavbarComp() {
               >
                 About
               </a> */}
-              <button className="pointer-events-none inline-flex h-12 animate-shimmer items-center justify-center rounded-md border border-white bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:ring-offset-slate-50">
+              <button
+                className="cursor-none inline-flex h-12 animate-shimmer items-center justify-center rounded-md border border-white bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:ring-offset-slate-50"
+                onClick={() => {
+                  navigate.push("/app");
+                }}
+              >
                 Launch App
               </button>
             </li>
