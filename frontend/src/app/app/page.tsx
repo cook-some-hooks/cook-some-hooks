@@ -132,33 +132,7 @@ export default function Home() {
                   <CoinSelector onSelectTokens={handleTokenSelect} />
                 </LabelInputContainer>
               </div>
-              {selectedTokens.length === 2 && (
-                <div className="mb-4">
-                  <h3 className="font-bold text-lg text-neutral-800 dark:text-neutral-200">
-                    Selected Pair:
-                  </h3>
-                  <div className="flex flex-col space-y-2">
-                    {selectedTokens.map((token) => (
-                      <div
-                        key={token.address}
-                        className="flex items-center space-x-2"
-                      >
-                        <div className="token-icon">
-                          <Image
-                            src={token.logoURI}
-                            alt={token.name}
-                            width={24}
-                            height={24}
-                          />
-                        </div>
-                        <span>
-                          {token.name} ({token.symbol})
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+
               <LabelInputContainer className="mb-4">
                 <Label htmlFor="prompt">Hook prompt</Label>
                 <TextArea
