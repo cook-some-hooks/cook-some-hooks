@@ -1,6 +1,11 @@
 "use client";
 
-import { useAccount, useDisconnect } from "wagmi";
+import {
+  useAccount,
+  useDeployContract,
+  useDisconnect,
+  useWaitForTransactionReceipt,
+} from "wagmi";
 import React, { useState } from "react";
 import Image from "next/image";
 import { cn } from "../../../lib/utils";
@@ -84,28 +89,77 @@ export default function Home() {
     return formattedCode;
   }
 
-  // Example usage
-  const solidityCode =
-    'contract HelloWorld { function sayHello() public pure returns (string memory) { return "Hello, World!"; } }';
-
   const handleSubmit = async (e: any) => {
     e.preventDefault();
-    const res = await fetch("/api/chat", {
-      method: "GET",
-      headers: { "Content-Type": "application/json" },
-    });
-
-    const data = await res.json();
-
     // const res = await fetch("/api/chat", {
-    //   method: "POST",
+    //   method: "GET",
     //   headers: { "Content-Type": "application/json" },
-    //   body: JSON.stringify({ prompt }),
     // });
 
     // const data = await res.json();
 
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt }),
+    });
+
+    const data = await res.json();
+
     setResponse(data.res);
+  };
+
+  const {
+    deployContract,
+    data: deployHash,
+    error,
+    isError,
+    isPending,
+    isSuccess,
+  } = useDeployContract();
+
+  const { data: txReceipt, isSuccess: isReceiptSuccess } =
+    useWaitForTransactionReceipt({
+      hash: deployHash,
+    });
+
+  const compileContract = async () => {
+    try {
+      const responseJson = await fetch("http://localhost:3001/compile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sourceCode: response }),
+      });
+
+      if (!responseJson.ok) {
+        throw new Error("Compilation failed");
+      }
+
+      const result = await responseJson.json();
+      return result;
+    } catch (error) {
+      console.error("Compilation error:", error);
+    }
+  };
+  const handleDeploy = async () => {
+    const files = await compileContract();
+    // console.log(files);
+    const abi = files.files.abi;
+    const bytecode = files.files.bytecode as `0x${string}`;
+
+    try {
+      await deployContract({
+        // abi: contractAbi,
+        // bytecode:
+        //   "6080604052348015600e575f80fd5b506101438061001c5f395ff3fe608060405234801561000f575f80fd5b5060043610610034575f3560e01c80632e64cec1146100385780636057361d14610056575b5f80fd5b610040610072565b60405161004d919061009b565b60405180910390f35b610070600480360381019061006b91906100e2565b61007a565b005b5f8054905090565b805f8190555050565b5f819050919050565b61009581610083565b82525050565b5f6020820190506100ae5f83018461008c565b92915050565b5f80fd5b6100c181610083565b81146100cb575f80fd5b50565b5f813590506100dc816100b8565b92915050565b5f602082840312156100f7576100f66100b4565b5b5f610104848285016100ce565b9150509291505056fea264697066735822122040e2a5eb0d57763a4fd5140f6529dc33e85957975bc1bcc24112580767a2e03264736f6c634300081a0033" as `0x${string}`,
+
+        abi: abi,
+        bytecode: bytecode,
+        args: [],
+      });
+    } catch (err) {
+      console.error("Deployment error:", err);
+    }
   };
   return (
     <main className="">
@@ -147,17 +201,68 @@ export default function Home() {
                 type="submit"
                 onClick={handleButtonClick}
               >
-                Generate with OpenAI &rarr;
+                Generate with Claude.ai &rarr;
                 <BottomGradient />
               </button>
             </form>
           </div>
           {isTransitioned && (
-            <div className="h-[80vh] w-[60%]  overflow-scroll rounded-md border border-white/[0.2]  mt-10 flex items-center justify-center bg-gray-200 dark:bg-black transition-opacity duration-500">
-              <div className="w-full h-full">
+            <div className="h-[80vh] w-[60%] flex flex-col  overflow-scroll rounded-md border border-white/[0.2]  mt-10 flex items-center justify-center bg-gray-200 dark:bg-black transition-opacity duration-500">
+              <div className="w-full h-full items-end flex flex-col">
                 {/* {response && response} */}
-                <SolidityCode code={response} />
+                <button
+                  className=" inline-flex h-12 animate-shimmer items-center justify-center rounded-md border border-white/[0.2] bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:ring-offset-slate-50"
+                  onClick={() => {
+                    handleDeploy();
+                  }}
+                >
+                  Compile & Deploy
+                </button>
+                <div className={"w-full"}>
+                  <SolidityCode code={response} />
+                </div>
               </div>
+              {isSuccess && (
+                <div className="mt-4 text-center">
+                  <h3 className="text-xl font-bold">Transaction Submitted</h3>
+                  <p className="mt-2">Transaction Hash: {deployHash}</p>
+                  {isReceiptSuccess && (
+                    <>
+                      <p className="mt-2">
+                        Status:{" "}
+                        {txReceipt?.status === "success" ? "Success" : "Failed"}
+                      </p>
+                      {txReceipt?.status === "success" && (
+                        <p className="mt-2">
+                          Contract Address: {txReceipt.contractAddress}
+                        </p>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
+
+              {isError && (
+                <div className="mt-4 text-center text-red-500">
+                  <h3 className="text-xl font-bold">
+                    Error Deploying Contract
+                  </h3>
+                  <p className="mt-2">{error?.message}</p>
+                </div>
+              )}
+
+              {deployHash && (
+                <div className="mt-4 text-center">
+                  <a
+                    href={`https://sepolia.etherscan.io/tx/${deployHash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-500 hover:text-blue-700"
+                  >
+                    View on Etherscan
+                  </a>
+                </div>
+              )}
             </div>
           )}
         </div>
