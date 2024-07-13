@@ -1,0 +1,140 @@
+{
+    "tokens": [
+        {
+            "chainId": 1,
+            "address": "0x1f9840a85d5af5bf1d1762f925bdaddc4201f984",
+            "name": "Uniswap",
+            "symbol": "UNI",
+            "decimals": 18,
+            "logoURI": "https://assets.coingecko.com/coins/images/12504/thumb/uniswap-logo.png?1720676669"
+        },
+        {
+            "chainId": 1,
+            "address": "0x152649ea73beab28c5b49b26eb48f7ead6d4c898",
+            "name": "PancakeSwap",
+            "symbol": "CAKE",
+            "decimals": 18,
+            "logoURI": "https://assets.coingecko.com/coins/images/12632/thumb/pancakeswap-cake-logo_%281%29.png?1696512440"
+        },
+        {
+            "chainId": 1,
+            "address": "0x0000000000000000000000000000000000000000",
+            "name": "Ethereum",
+            "symbol": "ETH",
+            "decimals": 18,
+            "logoURI": "https://assets.coingecko.com/coins/images/279/thumb/ethereum.png?1595348880"
+        },
+        {
+            "chainId": 1,
+            "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "name": "USD Coin",
+            "symbol": "USDC",
+            "decimals": 6,
+            "logoURI": "https://assets.coingecko.com/coins/images/6319/thumb/USD_Coin_icon.png?1547042389"
+        },
+        {
+            "chainId": 1,
+            "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+            "name": "Tether",
+            "symbol": "USDT",
+            "decimals": 6,
+            "logoURI": "https://assets.coingecko.com/coins/images/325/thumb/Tether-logo.png?1598003707"
+        },
+        {
+            "chainId": 1,
+            "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+            "name": "Dai",
+            "symbol": "DAI",
+            "decimals": 18,
+            "logoURI": "https://assets.coingecko.com/coins/images/9956/thumb/4943.png?1636636734"
+        },
+        {
+            "chainId": 1,
+            "address": "0x6e1a19f235b9d59e1eac8251c0d7545d6e12d7e0",
+            "name": "Filecoin",
+            "symbol": "FIL",
+            "decimals": 18,
+            "logoURI": "https://assets.coingecko.com/coins/images/12817/thumb/filecoin.png?1602753933"
+        },
+        {
+            "chainId": 1,
+            "address": "0x7d1afa7b718fb893db30a3abc0cfc608aacfebb0",
+            "name": "Polygon",
+            "symbol": "MATIC",
+            "decimals": 18,
+            "logoURI": "https://assets.coingecko.com/coins/images/4713/thumb/matic-token-icon.png?1624446912"
+        },
+        {
+            "chainId": 1,
+            "address": "0x912CE59144191C1204E64559FE8253a0e49E6548",
+            "name": "Arbitrum",
+            "symbol": "ARB",
+            "decimals": 18,
+            "logoURI": "https://assets.coingecko.com/coins/images/16547/thumb/photo_2023-03-23_18-25-04.jpg?1679553702"
+        },
+        {
+            "chainId": 1,
+            "address": "0x0000000000000000000000000000000000000001",
+            "name": "Safe",
+            "symbol": "SAFE",
+            "decimals": 18,
+            "logoURI": "https://assets.coingecko.com/coins/images/12632/thumb/pancakeswap-cake-logo_%281%29.png?1696512440"
+        },
+        {
+            "chainId": 1,
+            "address": "0x0000000000000000000000000000000000000002",
+            "name": "Pyth",
+            "symbol": "PYTH",
+            "decimals": 18,
+            "logoURI": "https://assets.coingecko.com/coins/images/12632/thumb/pancakeswap-cake-logo_%281%29.png?1696512440"
+        },
+        {
+            "chainId": 1,
+            "address": "0x0000000000000000000000000000000000000003",
+            "name": "Ethereum Name Service",
+            "symbol": "ENS",
+            "decimals": 18,
+            "logoURI": "https://assets.coingecko.com/coins/images/19785/thumb/acatxTm8_400x400.jpg?1635850140"
+        },
+        {
+            "chainId": 1,
+            "address": "0x0000000000000000000000000000000000000004",
+            "name": "ApeCoin",
+            "symbol": "APE",
+            "decimals": 18,
+            "logoURI": "https://assets.coingecko.com/coins/images/24383/thumb/apecoin.jpg?1647476455"
+        },
+        {
+            "chainId": 1,
+            "address": "0x0000000000000000000000000000000000000005",
+            "name": "Celo",
+            "symbol": "CELO",
+            "decimals": 18,
+            "logoURI": "https://assets.coingecko.com/coins/images/11090/thumb/celo.png?1674707491"
+        },
+        {
+            "chainId": 1,
+            "address": "0x0000000000000000000000000000000000000006",
+            "name": "1inch",
+            "symbol": "1INCH",
+            "decimals": 18,
+            "logoURI": "https://assets.coingecko.com/coins/images/13469/thumb/1inch-token.png?1608803028"
+        },
+        {
+            "chainId": 1,
+            "address": "0x0000000000000000000000000000000000000007",
+            "name": "The Graph",
+            "symbol": "GRT",
+            "decimals": 18,
+            "logoURI": "https://assets.coingecko.com/coins/images/13397/thumb/Graph_Token.png?1608145566"
+        },
+        {
+            "chainId": 1,
+            "address": "0x0000000000000000000000000000000000000008",
+            "name": "Chainlink",
+            "symbol": "LINK",
+            "decimals": 18,
+            "logoURI": "https://assets.coingecko.com/coins/images/877/thumb/chainlink-new-logo.png?1547034700"
+        }
+    ]
+}
