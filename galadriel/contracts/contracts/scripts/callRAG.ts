@@ -1,5 +1,5 @@
 import {Contract, ethers, TransactionReceipt, Wallet} from "ethers";
-import ABI from "./abis/ChatGpt.json";
+import ABI from "./abis/AnthropicChatGpt.json";
 import * as readline from 'readline';
 
 require("dotenv").config()
@@ -7,6 +7,37 @@ require("dotenv").config()
 interface Message {
   role: string,
   content: string,
+}
+
+async function queryLlm(contract: Contract, message: string, knowledgeBase: string) {
+
+  const transactionResponse = await contract.startChat(message, "QmQdCYPy9Y3cyHPSUR1fGBw1WD5q8o5gGhWEtCYQixdSHs")
+  const receipt = await transactionResponse.wait()
+  console.log(`Message sent, tx hash: ${receipt.hash}`)
+  console.log(`Chat started with message: "${message}"`)
+
+  // Get the chat ID from transaction receipt logs
+  let chatId = getChatId(receipt, contract);
+  console.log(`Created chat ID: ${chatId}`)
+  if (!chatId && chatId !== 0) {
+    return
+  }
+
+  let allMessages: Message[] = []
+
+  // Run the chat loop: read messages and send messages
+  while (true) {
+    const newMessages: Message[] = await getNewMessages(contract, chatId, allMessages.length);
+    if (newMessages) {
+      for (let message of newMessages) {
+        if (message.role == "assistant") {
+            console.log("Assistant finished generating code")
+            return message.content;
+        }
+      }
+    }
+    await new Promise(resolve => setTimeout(resolve, 2000))
+  }
 }
 
 async function main() {
@@ -23,51 +54,56 @@ async function main() {
   )
   const contract = new Contract(contractAddress, ABI, wallet)
 
-  // The message you want to start the chat with
-  const message = await getUserInput()
-
-  // Call the startChat function
-  const transactionResponse = await contract.startChat(message)
-  const receipt = await transactionResponse.wait()
-  console.log(`Message sent, tx hash: ${receipt.hash}`)
-  console.log(`Chat started with message: "${message}"`)
-
-  // Get the chat ID from transaction receipt logs
-  let chatId = getChatId(receipt, contract);
-  console.log(`Created chat ID: ${chatId}`)
-  if (!chatId && chatId !== 0) {
+  const userMessage = await getUserInput();
+  if (!userMessage) {
+    console.error("No message provided.")
     return
   }
 
-  let allMessages: Message[] = []
+  let message = "Based on what I want to build what are the best codes to be used in the project? \
+  Only output their filenames in a list format. \
+  [example]:\
+  userMessage: \
+  I want to build whitelist hook with gaz prices\
+  response: \
+  ['WhiteListHook.sol', 'GasPriceFeesHook.sol']\
+  \
+  Here is the userMessage: " + userMessage + "\
+  \
+  Here is the response: ";
 
-  let hookCode = "";
-  let finished = false;
-  // Run the chat loop: read messages and send messages
-  while (!finished) {
-    const newMessages: Message[] = await getNewMessages(contract, chatId, allMessages.length);
-    if (newMessages) {
-      for (let message of newMessages) {
-        if (message.role == "assistant") {
-            console.log("Assistant finished generating code")
-            hookCode = message.content;
-            finished = true;
-            break
-        }
-        allMessages.push(message)
-        if (allMessages.at(-1)?.role == "assistant") {
-          const message = getUserInput()
-          const transactionResponse = await contract.addMessage(message, chatId)
-          const receipt = await transactionResponse.wait()
-          console.log(`Message sent, tx hash: ${receipt.hash}`)
-        }
-      }
-    }
-    await new Promise(resolve => setTimeout(resolve, 2000))
+  let hookSelection = await queryLlm(contract, message, "QmTvH9Qh2Hd84iyUsFj2cMxKUaAgUFd7Qox4FsAAW7CnUt")
+  if (!hookSelection) {
+    console.error("No response from LLM")
+    return
+  }
+  hookSelection = hookSelection.trim().replace(/```/g, '').replace(/'/g, '"');
+  try {
+    const hookSelectionList: string[] = JSON.parse(hookSelection);
+    console.log(hookSelectionList);
+  } catch (error) {
+    console.error("Failed to parse response as JSON:", error);
   }
 
-  console.log(hookCode);
+  message = "Build a hook, using your general knowledge and the codes that are provided to you \
+  I want to build a:" + userMessage + "\
+  You have have allready made of the hooks that are usefull for you: \
+  hooks: " + hookSelection + "\
+  Only output a solidity code for the hook you want to build. Nothing more!!!"
 
+  let response = await queryLlm(contract, userMessage, "QmQiUb8Rwwv1SKn2nvnWeq9WaHRdmSXc4WWUqMKs6uuxSU")
+  console.log(response);
+  if (!response) {
+    console.error("No response from LLM")
+    return
+  }
+  const solidityCodeMatch = response.match(/```solidity([\s\S]*?)```/);
+  if (solidityCodeMatch && solidityCodeMatch[1]) {
+    const solidityCode = solidityCodeMatch[1].trim();
+    console.log(solidityCode);
+  } else {
+    console.error("No Solidity code found in the response.");
+  } 
 }
 
 async function getUserInput(): Promise<string | undefined> {
@@ -134,4 +170,3 @@ async function getNewMessages(
 }
 
 main()
-  .then(() => console.log("Done"))

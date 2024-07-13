@@ -5,9 +5,9 @@ async function main() {
         throw new Error("ORACLE_ADDRESS env variable is not set.");
     }
     const oracleAddress: string = process.env.ORACLE_ADDRESS;
-    const contractName = "AnthropicChatGpt" // ChatGpt AnthropicChatGpt
+    const contractName = "AnthropicRAG2" // ChatGpt AnthropicChatGpt
     console.log()
-    await deployChatGptWithKnowledgeBase(contractName, oracleAddress, "QmQdCYPy9Y3cyHPSUR1fGBw1WD5q8o5gGhWEtCYQixdSHs");
+    await deployChatGptWithKnowledgeBase(contractName, oracleAddress, "");
 }
 
 async function deployChatGptWithKnowledgeBase(contractName: string, oracleAddress: string, knowledgeBaseCID: string) {
