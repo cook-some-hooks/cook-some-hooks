@@ -1,15 +1,22 @@
 "use client";
 
-import Connect from "../../components/connect";
 import { useAccount, useDisconnect } from "wagmi";
 import React, { useState } from "react";
 import Image from "next/image";
 import { cn } from "../../../lib/utils";
-import { FollowerPointerCard } from "@/components/ui/following-pointer";
+
 import { NavbarApp } from "@/components/NavbarApp";
+
 import { HeroHighlight } from "@/components/ui/hero-highlight";
-import { IconBrandGithub, IconBrandGoogle, IconBrandOnlyfans } from "@tabler/icons-react";
+import {
+  IconBrandGithub,
+  IconBrandGoogle,
+  IconBrandOnlyfans,
+} from "@tabler/icons-react";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
+import { Option } from "@/components/ui/option";
 import { TextArea } from "@/components/ui/textarea";
 import CoinSelector from "@/components/tokens/CoinSelector";
 
@@ -22,19 +29,16 @@ interface Token {
   logoURI: string;
 }
 
+import SolidityCode from "@/components/SolidityCode";
+
 export default function Home() {
   const { address, isConnected } = useAccount();
+
   const { disconnect } = useDisconnect();
   console.log(address);
 
   const [isTransitioned, setIsTransitioned] = useState(false);
   const [selectedTokens, setSelectedTokens] = useState<Token[]>([]);
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    console.log("Form submitted");
-    console.log("Selected Tokens:", selectedTokens);
-  };
 
   const handleButtonClick = () => {
     setIsTransitioned(true);
@@ -44,14 +48,73 @@ export default function Home() {
     setSelectedTokens(tokens);
   };
 
+  const [prompt, setPrompt] = useState("");
+  const [response, setResponse] = useState("");
+
+  function formatSolidityCode(code: any) {
+    // Add line breaks after certain keywords and symbols
+    code = code.replace(/(\{|\}|;)/g, "$1\n");
+    code = code.replace(
+      /(function|contract|modifier|event|struct|enum|library|interface|if|else|for|while|return|mapping|emit|require|assert|revert)/g,
+      "\n$1"
+    );
+
+    // Remove excess white spaces and new lines
+    code = code.replace(/\n\s*\n/g, "\n");
+    code = code.replace(/\s*\n\s*/g, "\n");
+
+    // Indentation logic
+    let indent = 0;
+    let formattedCode = "";
+    const lines = code.split("\n");
+
+    lines.forEach((line: any) => {
+      line = line.trim();
+      if (line) {
+        if (line.includes("}")) {
+          indent -= 1;
+        }
+        formattedCode += "    ".repeat(indent) + line + "\n";
+        if (line.includes("{")) {
+          indent += 1;
+        }
+      }
+    });
+
+    return formattedCode;
+  }
+
+  // Example usage
+  const solidityCode =
+    'contract HelloWorld { function sayHello() public pure returns (string memory) { return "Hello, World!"; } }';
+
+  const handleSubmit = async (e: any) => {
+    e.preventDefault();
+    const res = await fetch("/api/chat", {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    const data = await res.json();
+
+    // const res = await fetch("/api/chat", {
+    //   method: "POST",
+    //   headers: { "Content-Type": "application/json" },
+    //   body: JSON.stringify({ prompt }),
+    // });
+
+    // const data = await res.json();
+
+    setResponse(data.res);
+  };
   return (
     <main className="">
       <NavbarApp />
       <HeroHighlight className="w-full">
         <div
-          className={`flex flex-row items-center justify-center transition-all duration-500 ${
+          className={`flex flex-row items-center justify-center transition-all duration-[4s] ${
             isTransitioned
-              ? "justify-start mx-auto max-w-screen-xl flex flex-row items-center gap-2 p-4"
+              ? "justify-start mx-auto max-w-screen-xl flex flex-row items-center gap-2 p-4   "
               : ""
           }`}
         >
@@ -75,12 +138,22 @@ export default function Home() {
                     Selected Pair:
                   </h3>
                   <div className="flex flex-col space-y-2">
-                    {selectedTokens.map(token => (
-                      <div key={token.address} className="flex items-center space-x-2">
+                    {selectedTokens.map((token) => (
+                      <div
+                        key={token.address}
+                        className="flex items-center space-x-2"
+                      >
                         <div className="token-icon">
-                          <Image src={token.logoURI} alt={token.name} width={24} height={24} />
+                          <Image
+                            src={token.logoURI}
+                            alt={token.name}
+                            width={24}
+                            height={24}
+                          />
                         </div>
-                        <span>{token.name} ({token.symbol})</span>
+                        <span>
+                          {token.name} ({token.symbol})
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -90,7 +163,9 @@ export default function Home() {
                 <Label htmlFor="prompt">Hook prompt</Label>
                 <TextArea
                   id="prompt"
-                  placeholder="Enter your prompt here for cooking your hook"
+                  placeholder="Enter your prompt here for cooking your hook "
+                  onChange={(e) => setPrompt(e.target.value)}
+                  value={prompt}
                 />
               </LabelInputContainer>
               <button
@@ -104,10 +179,11 @@ export default function Home() {
             </form>
           </div>
           {isTransitioned && (
-            <div className="w-[60%] rounded-md border border-white/[0.2] h-[80vh] mt-10 flex items-center justify-center bg-gray-200 dark:bg-black transition-opacity duration-500">
-              <h2 className="font-bold text-xl text-neutral-800 dark:text-neutral-200">
-                New Content Here
-              </h2>
+            <div className="h-[80vh] w-[60%]  overflow-scroll rounded-md border border-white/[0.2]  mt-10 flex items-center justify-center bg-gray-200 dark:bg-black transition-opacity duration-500">
+              <div className="w-full h-full">
+                {/* {response && response} */}
+                <SolidityCode code={response} />
+              </div>
             </div>
           )}
         </div>
@@ -115,6 +191,18 @@ export default function Home() {
     </main>
   );
 }
+const styles = {
+  container: {
+    fontFamily: "Arial, sans-serif",
+    backgroundColor: "#f4f4f4",
+    margin: "0",
+    padding: "0",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    paddingTop: "50px",
+  },
+};
 
 const BottomGradient = () => {
   return (
