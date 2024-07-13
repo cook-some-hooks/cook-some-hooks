@@ -3,7 +3,7 @@
 import Connect from "../../components/connect";
 import { useAccount, useDisconnect } from "wagmi";
 import React, { useState } from "react";
-
+import Image from "next/image";
 import { cn } from "../../../lib/utils";
 import { FollowerPointerCard } from "@/components/ui/following-pointer";
 import { NavbarApp } from "@/components/NavbarApp";
@@ -71,16 +71,30 @@ export default function Home() {
               Cook your Hook
             </h2>
             <form className="my-8 mb-0" onSubmit={handleSubmit}>
-              <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 mb-4">
+              <div className="flex flex-col space-y-2 mb-4">
                 <LabelInputContainer>
                   <CoinSelector onSelectTokens={handleTokenSelect} />
                 </LabelInputContainer>
-                <LabelInputContainer>
-                  <Select>
-                    <option value="1">1</option>
-                  </Select>
-                </LabelInputContainer>
               </div>
+              {selectedTokens.length === 2 && (
+                <div className="mb-4">
+                  <h3 className="font-bold text-lg text-neutral-800 dark:text-neutral-200">
+                    Selected Pair:
+                  </h3>
+                  <div className="flex flex-col space-y-2">
+                    {selectedTokens.map(token => (
+                      <div key={token.address} className="flex items-center space-x-2">
+                        <div className="token-icon">
+                          <Image src={token.logoURI} alt={token.name} width={24} height={24} />
+                        </div>
+                        <span>{token.name} ({token.symbol})</span>
+                        <div>Chain ID: {token.chainId}</div>
+                        <div>Address: {token.address}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               <LabelInputContainer className="mb-4">
                 <Label htmlFor="prompt">Hook prompt</Label>
                 <TextArea
@@ -96,7 +110,6 @@ export default function Home() {
                 Generate with OpenAI &rarr;
                 <BottomGradient />
               </button>
-              {/* <div className="bg-gradient-to-r from-transparent via-neutral-300 dark:via-neutral-700 to-transparent my-8 h-[1px] w-full" /> */}
             </form>
           </div>
           {isTransitioned && (
