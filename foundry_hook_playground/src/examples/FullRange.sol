@@ -125,7 +125,6 @@ contract FullRange is BaseHook {
         });
 
         PoolId poolId = key.toId();
-
         (uint160 sqrtPriceX96,,,) = manager.getSlot0(poolId);
 
         if (sqrtPriceX96 == 0) revert PoolNotInitialized();

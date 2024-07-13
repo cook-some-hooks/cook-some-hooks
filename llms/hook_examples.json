@@ -12,5 +12,6 @@
     "VolatilityOracle.sol":"A volatility oracle is a contract that provides information about the volatility of an asset. This information can be used to price options and other derivatives.",
     "FullRange.sol":"A hook that allows a Uniswap pool to provide liquidity for a range of prices. This can be used to create a market maker for a volatile asset or to provide more liquidity for a thin market.",
     "AxiomHighVolumeTraders.sol":"A hook for Uniswap v4 that integrates Axiom's zero-knowledge (zk) co-processing technology, enabling the creation of dynamic fee tiers for users engaged in token swaps. This mechanism rewards users with reduced trading fees based on their monthly swap volume, fostering more active participation on the platform.",
-    "TradingHours.sol":"Traditional market opening/closing hours to a Uniswap v4 pool using a beforeSwap hook. Users are only able to trade between 8am and 4pm."
+    "TradingHours.sol":"Traditional market opening/closing hours to a Uniswap v4 pool using a beforeSwap hook. Users are only able to trade between 8am and 4pm.",
+    "WorldIDHook.sol":"A hook contract for Uniswap v4, specializing in user verification. Users need to be registered on the World ID of World Coin to be able to swap."
 }
