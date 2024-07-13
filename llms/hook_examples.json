@@ -8,5 +8,5 @@
     "ERC721OwnershipHook.sol": "Disallows a swap if sender doesn't own an ERC721 NFT. This can be used to prevent people from selling tokens that they don't own.",
     "LimitOrder.sol":"A hook that allows users to place limit orders. This means that they can specify the price at which they are willing to buy or sell an asset. If the market price reaches the limit price, the order will be executed.",
     "GeomeanOracle.sol":"A unique hook making a Uniswap pool function as an oracle. The geomean price is calculated using the prices of the assets in the pool. This can be used to get a more accurate price for an asset than a single oracle.",
-    "WhitelistHook.sol":"The Whitelist Hook contract is an advanced implementation designed to work seamlessly with Uniswap v4's innovative hook system. This contract enables restriction of access to pools based on a whitelist, ensuring that only authorized addresses can interact with the pools.",
+    "WhiteListHook.sol":"The Whitelist Hook contract is an advanced implementation designed to work seamlessly with Uniswap v4's innovative hook system. This contract enables restriction of access to pools based on a whitelist, ensuring that only authorized addresses can interact with the pools."
 }
