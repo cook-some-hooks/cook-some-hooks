@@ -7,6 +7,8 @@ import { exec } from 'child_process';
 
 require("dotenv").config()
 
+const workingDirectory = '/Users/tanguyvans/Desktop/hackathon/eth_bxl/cook-some-hooks/foundry_hook_playground';
+
 interface Message {
   role: string,
   content: string,
@@ -121,17 +123,17 @@ async function main() {
     }
 
     console.log("solidity code: ", solidityCode);
-    saveToSol(solidityCode, "", "NewHook.sol");
+    saveToSol(solidityCode, workingDirectory + "/src/generated", "NewHook.sol");
 
     try {
       const { stdout, stderr, returncode } = await compileContract(fileName);
       result = "the hook was able to compute";
       break;
     } catch (error) {
-      console.error("Error compiling contract:", error);
+      console.error("Error compiling contract:", JSON.stringify(error, null, 2));
       message = `
       Here is the solidity code: \n\n${solidityCode}\n\n
-      I get this error when compiling the contract: \n\n${error}\n\nOUTPUT: Only the fixed solidity code
+      I get this error when compiling the contract: \n\n${JSON.stringify(error, null, 2)}\n\nOUTPUT: Only the fixed solidity code
       `;
     }
     attemptCounter += 1;
@@ -219,7 +221,6 @@ function saveToSol(content: string, folderPath: string, fileName: string): void 
 
 function compileContract(fileToBuild: string): Promise<{ stdout: string, stderr: string, returncode: number }> {
   const command = `forge build src/generated/${fileToBuild}`;
-  const workingDirectory = '/Users/tanguyvans/Desktop/hackathon/eth_bxl/cook-some-hooks/foundry_hook_playground';
 
   return new Promise((resolve, reject) => {
       exec(command, { cwd: workingDirectory }, (error, stdout, stderr) => {
