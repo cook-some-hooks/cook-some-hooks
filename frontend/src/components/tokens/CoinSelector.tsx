@@ -97,8 +97,6 @@ const CoinSelector: React.FC<CoinSelectorProps> = ({ onSelectTokens }) => {
               <Image src={token.logoURI} alt={token.name} width={24} height={24} />
             </div>
             <span>{token.name} ({token.symbol})</span>
-            <div>Chain ID: {token.chainId}</div>
-            <div>Address: {token.address}</div>
           </div>
         ))}
       </div>
