@@ -6,7 +6,7 @@ import {IPoolManager} from "v4-core/src/interfaces/IPoolManager.sol";
 import {Hooks} from "v4-core/src/libraries/Hooks.sol";
 import {BaseHook} from "v4-periphery/BaseHook.sol";
 import {PoolKey} from "v4-core/src/types/PoolKey.sol";
-import {BeforeSwapDelta, toBeforeSwapDelta} from "v4-core/src/types/BeforeSwapDelta.sol";
+import {BeforeSwapDelta, BeforeSwapDeltaLibrary} from "v4-core/src/types/BeforeSwapDelta.sol";
 
 /**
  * @title An interface for checking whether an address has a valid kycNFT token
@@ -30,7 +30,7 @@ contract KYCSwaps is BaseHook, Ownable {
     constructor(
         IPoolManager _poolManager,
         address _kycValidity
-    ) BaseHook(_poolManager) Ownable(msg.sender) {
+    ) BaseHook(_poolManager) {
         kycValidity = IKycValidity(_kycValidity);
     }
 
@@ -86,6 +86,6 @@ contract KYCSwaps is BaseHook, Ownable {
         IPoolManager.SwapParams calldata,
         bytes calldata
     ) external view override onlyByManager onlyPermitKYC returns (bytes4, BeforeSwapDelta, uint24) {
-        return (this.beforeSwap.selector, toBeforeSwapDelta(0, 0), 0);
+        return (this.beforeSwap.selector, BeforeSwapDeltaLibrary.ZERO_DELTA, 0);
     }
 }
