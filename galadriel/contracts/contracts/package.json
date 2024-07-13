@@ -12,10 +12,12 @@
     "deployAll:galadriel": "npx hardhat run scripts/deployAll.ts --network galadriel",
     "deployQuickstart": "npx hardhat run scripts/deployQuickstart.ts --network galadriel",
     "deploySimpleLlm": "npx hardhat run scripts/deploySimpleLlm.ts --network galadriel",
+    "deployAgent": "npx hardhat run scripts/deployAgent.ts --network galadriel",
     "deployTest:localhost": "npx hardhat run scripts/deployTest.ts --network localhost",
     "deployTest:galadriel": "npx hardhat run scripts/deployTest.ts --network galadriel",
     "callQuickstart": "npx hardhat run scripts/callQuickstart.ts --network galadriel",
     "callSimpleLlm": "npx hardhat run scripts/callSimpleLlm.ts --network galadriel",
+    "callAgent": "npx hardhat run scripts/callAgent.ts --network galadriel",
     "generateStandardJson": "npx hardhat solidity-json",
     "debug": "npx hardhat test scripts/debugContract.ts"
   },
