@@ -24,6 +24,7 @@ import { Select } from "@/components/ui/select";
 import { Option } from "@/components/ui/option";
 import { TextArea } from "@/components/ui/textarea";
 import CoinSelector from "@/components/tokens/CoinSelector";
+import Verify from "../verify";
 
 interface Token {
   chainId: number;
@@ -44,6 +45,7 @@ export default function Home() {
 
   const [isTransitioned, setIsTransitioned] = useState(false);
   const [selectedTokens, setSelectedTokens] = useState<Token[]>([]);
+  const [isWorldcoinVerified, setIsWorldcoinVerified] = useState(false);
 
   const handleButtonClick = () => {
     setIsTransitioned(true);
@@ -51,6 +53,10 @@ export default function Home() {
 
   const handleTokenSelect = (tokens: Token[]) => {
     setSelectedTokens(tokens);
+  };
+
+  const onWorldcoinSuccess = () => {
+    setIsWorldcoinVerified(true);
   };
 
   const [prompt, setPrompt] = useState("");
@@ -141,7 +147,13 @@ export default function Home() {
       console.error("Compilation error:", error);
     }
   };
+  
   const handleDeploy = async () => {
+    if (!isWorldcoinVerified) {
+      alert("Please verify with Worldcoin before deploying.");
+      return;
+    }
+
     const files = await compileContract();
     // console.log(files);
     const abi = files.files.abi;
@@ -210,13 +222,15 @@ export default function Home() {
             <div className="h-[80vh] w-[60%] flex flex-col  overflow-scroll rounded-md border border-white/[0.2]  mt-10 flex items-center justify-center bg-gray-200 dark:bg-black transition-opacity duration-500">
               <div className="w-full h-full items-end flex flex-col">
                 {/* {response && response} */}
+                <Verify onSuccess={onWorldcoinSuccess} />
                 <button
                   className=" inline-flex h-12 animate-shimmer items-center justify-center rounded-md border border-white/[0.2] bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:ring-offset-slate-50"
                   onClick={() => {
                     handleDeploy();
                   }}
+                  disabled={!isWorldcoinVerified}
                 >
-                  Compile & Deploy
+                  {isWorldcoinVerified ? "Compile & Deploy" : "Verify with Worldcoin to Deploy"}
                 </button>
                 <div className={"w-full"}>
                   <SolidityCode code={response} />
