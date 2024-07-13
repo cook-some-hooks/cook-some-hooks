@@ -20,11 +20,11 @@ export function HeroHighlightComponent() {
         }}
         className="text-2xl px-4 md:text-4xl lg:text-5xl font-bold text-neutral-700 dark:text-white max-w-4xl leading-relaxed lg:leading-snug text-center mx-auto "
       >
-        Generate cutting edge hooks using AI with{" "}
+        AI-powered hooks that'll make your tracks cook - that&apos;s the magic
+        of <br />
         <Highlight className="text-black dark:text-white">
-          Cook some Hook&apos;
-        </Highlight>{" "}
-        app
+          &apos;Cook some Hook{" "}
+        </Highlight>
       </motion.h1>
     </HeroHighlight>
   );
