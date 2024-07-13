@@ -60,33 +60,50 @@ async function main() {
     return
   }
 
-  // let message = "Based on what I want to build what are the best codesto be used in the project? \
-  // Only output their filenames in a list format. \
-  // [example]:\
-  // userMessage: \
-  // I want to build whitelist hook with gaz prices\
-  // response: \
-  // ['WhiteListHook.sol', 'GasPriceFeesHook.sol']\
-  // \
-  // Here is the userMessage: " + userMessage + "\
-  // \
-  // Here is the response: ";
+  let message = "Based on what I want to build what are the best codes to be used in the project? \
+  Only output their filenames in a list format. \
+  [example]:\
+  userMessage: \
+  I want to build whitelist hook with gaz prices\
+  response: \
+  ['WhiteListHook.sol', 'GasPriceFeesHook.sol']\
+  \
+  Here is the userMessage: " + userMessage + "\
+  \
+  Here is the response: ";
 
-  // let response = await queryLlm(contract, message, "QmTvH9Qh2Hd84iyUsFj2cMxKUaAgUFd7Qox4FsAAW7CnUt")
-  // if (!response) {
-  //   console.error("No response from LLM")
-  //   return
-  // }
-  // response = response.trim().replace(/```/g, '').replace(/'/g, '"');
-  // try {
-  //   const codeList: string[] = JSON.parse(response);
-  //   console.log(codeList);
-  // } catch (error) {
-  //   console.error("Failed to parse response as JSON:", error);
-  // }
+  let hookSelection = await queryLlm(contract, message, "QmTvH9Qh2Hd84iyUsFj2cMxKUaAgUFd7Qox4FsAAW7CnUt")
+  if (!hookSelection) {
+    console.error("No response from LLM")
+    return
+  }
+  hookSelection = hookSelection.trim().replace(/```/g, '').replace(/'/g, '"');
+  try {
+    const hookSelectionList: string[] = JSON.parse(hookSelection);
+    console.log(hookSelectionList);
+  } catch (error) {
+    console.error("Failed to parse response as JSON:", error);
+  }
+
+  message = "Build a hook, using your general knowledge and the codes that are provided to you \
+  I want to build a:" + userMessage + "\
+  You have have allready made of the hooks that are usefull for you: \
+  hooks: " + hookSelection + "\
+  Only output a solidity code for the hook you want to build. Nothing more!!!"
 
   let response = await queryLlm(contract, userMessage, "QmQiUb8Rwwv1SKn2nvnWeq9WaHRdmSXc4WWUqMKs6uuxSU")
   console.log(response);
+  if (!response) {
+    console.error("No response from LLM")
+    return
+  }
+  const solidityCodeMatch = response.match(/```solidity([\s\S]*?)```/);
+  if (solidityCodeMatch && solidityCodeMatch[1]) {
+    const solidityCode = solidityCodeMatch[1].trim();
+    console.log(solidityCode);
+  } else {
+    console.error("No Solidity code found in the response.");
+  } 
 }
 
 async function getUserInput(): Promise<string | undefined> {
