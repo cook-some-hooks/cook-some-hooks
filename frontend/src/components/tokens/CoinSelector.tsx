@@ -22,28 +22,14 @@ interface CoinSelectorProps {
 }
 
 const CoinSelector: React.FC<CoinSelectorProps> = ({ onSelectTokens }) => {
-  const [allTokens, setAllTokens] = useState<Token[]>([]);
   const [displayedTokens, setDisplayedTokens] = useState<Token[]>(popularTokens);
   const [selectedTokens, setSelectedTokens] = useState<Token[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   useEffect(() => {
-    fetch('/components/tokens/uni.json')
-      .then(response => response.json())
-      .then(data => {
-        const updatedTokens = data.tokens.map((token: Token) => ({
-          ...token,
-          logoURI: `/tokens/${token.symbol.toLowerCase()}.png`
-        }));
-        setAllTokens(updatedTokens);
-      })
-      .catch(error => console.error('Error fetching tokens:', error));
-  }, []);
-
-  useEffect(() => {
     if (searchTerm) {
-      const filtered = allTokens.filter(token => 
+      const filtered = popularTokens.filter(token => 
         token.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         token.symbol.toLowerCase().includes(searchTerm.toLowerCase())
       );
@@ -51,14 +37,24 @@ const CoinSelector: React.FC<CoinSelectorProps> = ({ onSelectTokens }) => {
     } else {
       setDisplayedTokens(popularTokens);
     }
-  }, [searchTerm, allTokens]);
+  }, [searchTerm]);
 
   const handleSelect = (token: Token) => {
-    if (selectedTokens.length < 2 && !selectedTokens.find(t => t.address === token.address)) {
-      const newSelectedTokens = [...selectedTokens, token];
-      setSelectedTokens(newSelectedTokens);
-      onSelectTokens(newSelectedTokens);
+    let newSelectedTokens = [...selectedTokens];
+    const tokenIndex = newSelectedTokens.findIndex(t => t.address === token.address);
+
+    if (tokenIndex === -1) {
+      if (newSelectedTokens.length < 2) {
+        newSelectedTokens.push(token);
+      } else {
+        newSelectedTokens[1] = token;
+      }
+    } else {
+      newSelectedTokens = newSelectedTokens.filter(t => t.address !== token.address);
     }
+
+    setSelectedTokens(newSelectedTokens);
+    onSelectTokens(newSelectedTokens);
     setIsDropdownOpen(false);
     setSearchTerm('');
   };
@@ -90,16 +86,26 @@ const CoinSelector: React.FC<CoinSelectorProps> = ({ onSelectTokens }) => {
           </div>
         )}
       </div>
-      <div className="selected-tokens">
-        {selectedTokens.map(token => (
-          <div key={token.address} className="selected-token">
-            <div className="token-icon">
-              <Image src={token.logoURI} alt={token.name} width={24} height={24} />
-            </div>
-            <span>{token.name} ({token.symbol})</span>
+      {selectedTokens.length > 0 && (
+        <div className="selected-tokens">
+          <h3 className="font-bold text-lg text-neutral-800 dark:text-neutral-200">
+            Selected Token:
+          </h3>
+          <div className="flex flex-col space-y-2">
+            {selectedTokens.map(token => (
+              <div key={token.address} className="flex items-center space-x-2">
+                <div className="token-icon">
+                  <Image src={token.logoURI} alt={token.name} width={24} height={24} />
+                </div>
+                <span>{token.name} ({token.symbol})</span>
+                <button onClick={() => handleSelect(token)} className="remove-token">
+                  Remove
+                </button>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </div>
+      )}
       <style jsx>{`
         .coin-selector {
           width: 100%;
@@ -170,6 +176,18 @@ const CoinSelector: React.FC<CoinSelectorProps> = ({ onSelectTokens }) => {
         }
         .selected-token > div {
           margin-left: 12px;
+        }
+        .remove-token {
+          margin-left: auto;
+          padding: 4px 8px;
+          background-color: #333;
+          border: none;
+          border-radius: 4px;
+          color: white;
+          cursor: pointer;
+        }
+        .remove-token:hover {
+          background-color: #444;
         }
       `}</style>
     </div>
