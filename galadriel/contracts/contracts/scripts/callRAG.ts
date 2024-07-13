@@ -44,6 +44,7 @@ async function queryLlm(contract: Contract, message: string, knowledgeBase: stri
 }
 
 async function main() {
+
   const rpcUrl = process.env.RPC_URL
   if (!rpcUrl) throw Error("Missing RPC_URL in .env")
   const privateKey = process.env.PRIVATE_KEY_GALADRIEL
@@ -218,7 +219,7 @@ function saveToSol(content: string, folderPath: string, fileName: string): void 
 
 function compileContract(fileToBuild: string): Promise<{ stdout: string, stderr: string, returncode: number }> {
   const command = `forge build src/generated/${fileToBuild}`;
-  const workingDirectory = "/Users/miquel/Desktop/git/miqlar/cook-some-hooks/foundry_hook_playground";
+  const workingDirectory = '/Users/tanguyvans/Desktop/hackathon/eth_bxl/cook-some-hooks/foundry_hook_playground';
 
   return new Promise((resolve, reject) => {
       exec(command, { cwd: workingDirectory }, (error, stdout, stderr) => {
