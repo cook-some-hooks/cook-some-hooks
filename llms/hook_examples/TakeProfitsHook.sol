@@ -1,63 +1,71 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-import {BaseHook} from "v4-periphery/BaseHook.sol";
-import {ERC1155} from "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+import {BaseHook} from "periphery-next/BaseHook.sol";
+import {ERC1155} from "openzeppelin-contracts/contracts/token/ERC1155/ERC1155.sol";
 import {IPoolManager} from "v4-core/interfaces/IPoolManager.sol";
 import {Hooks} from "v4-core/libraries/Hooks.sol";
-
 import {PoolId, PoolIdLibrary} from "v4-core/types/PoolId.sol";
-import {PoolKey} from "v4-core/types/PoolKey.sol";
-
 import {Currency, CurrencyLibrary} from "v4-core/types/Currency.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-
+import {PoolKey} from "v4-core/types/PoolKey.sol";
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {TickMath} from "v4-core/libraries/TickMath.sol";
 import {BalanceDelta} from "v4-core/types/BalanceDelta.sol";
-
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
+import "forge-std/console.sol";
 
 contract TakeProfitsHook is BaseHook, ERC1155 {
+    // Use the PoolIdLibrary for PoolKey to add the `.toId()` function on a PoolKey
+    // which hashes the PoolKey struct into a bytes32 value
     using PoolIdLibrary for PoolKey;
+
+    // Use the CurrencyLibrary for the Currency struct
     using CurrencyLibrary for Currency;
+
+    // Use the FixedPointMathLib for doing math operations on uint256 values
     using FixedPointMathLib for uint256;
 
-    // Storage
-    mapping(PoolId poolId => int24 lastTick) public lastTicks;
-    mapping(PoolId poolId => mapping(int24 tickToSellAt => mapping(bool zeroForOne => uint256 inputAmount)))
-        public pendingOrders;
+    // Create a mapping to store the last known tickLower value for a given Pool
+    mapping(PoolId poolId => int24 tickLower) public tickLowerLasts;
 
-    mapping(uint256 positionId => uint256 outputClaimable)
-        public claimableOutputTokens;
-    mapping(uint256 positionId => uint256 claimsSupply)
-        public claimTokensSupply;
+    // Create a nested mapping to store the take-profit orders placed by users
+    // The mapping is PoolId => tickLower => zeroForOne => amount
+    // PoolId => (...) specifies the ID of the pool the order is for
+    // tickLower => (...) specifies the tickLower value of the order i.e. sell when price is greater than or equal to this tick
+    // zeroForOne => (...) specifies whether the order is swapping Token 0 for Token 1 (true), or vice versa (false)
+    // amount specifies the amount of the token being sold
+    mapping(PoolId poolId => mapping(int24 tick => mapping(bool zeroForOne => int256 amount)))
+        public takeProfitPositions;
 
-    // Errors
-    error InvalidOrder();
-    error NothingToClaim();
-    error NotEnoughToClaim();
+    // tokenIdExists is a mapping to store whether a given tokenId (i.e. a take-profit order) exists given a token id
+    mapping(uint256 tokenId => bool exists) public tokenIdExists;
+    // tokenIdClaimable is a mapping that stores how many swapped tokens are claimable for a given tokenId
+    mapping(uint256 tokenId => uint256 claimable) public tokenIdClaimable;
+    // tokenIdTotalSupply is a mapping that stores how many tokens need to be sold to execute the take-profit order
+    mapping(uint256 tokenId => uint256 supply) public tokenIdTotalSupply;
+    // tokenIdData is a mapping that stores the PoolKey, tickLower, and zeroForOne values for a given tokenId
+    mapping(uint256 tokenId => TokenData) public tokenIdData;
 
-    // Constructor
+    struct TokenData {
+        PoolKey poolKey;
+        int24 tick;
+        bool zeroForOne;
+    }
+
+    // Initialize BaseHook and ERC1155 parent contracts in the constructor
     constructor(
-        IPoolManager _manager,
+        IPoolManager _poolManager,
         string memory _uri
-    ) BaseHook(_manager) ERC1155(_uri) {}
+    ) BaseHook(_poolManager) ERC1155(_uri) {}
 
-    // BaseHook Functions
-    function getHookPermissions()
-        public
-        pure
-        override
-        returns (Hooks.Permissions memory)
-    {
+    // Required override function for BaseHook to let the PoolManager know which hooks are implemented
+    function getHooksCalls() public pure override returns (Hooks.Calls memory) {
         return
-            Hooks.Permissions({
+            Hooks.Calls({
                 beforeInitialize: false,
                 afterInitialize: true,
-                beforeAddLiquidity: false,
-                afterAddLiquidity: false,
-                beforeRemoveLiquidity: false,
-                afterRemoveLiquidity: false,
+                beforeModifyPosition: false,
+                afterModifyPosition: false,
                 beforeSwap: false,
                 afterSwap: true,
                 beforeDonate: false,
@@ -65,288 +73,319 @@ contract TakeProfitsHook is BaseHook, ERC1155 {
             });
     }
 
+    // Hooks
     function afterInitialize(
         address,
         PoolKey calldata key,
         uint160,
-        int24 tick,
-        bytes calldata
+        int24 tick
     ) external override poolManagerOnly returns (bytes4) {
-        lastTicks[key.toId()] = tick;
-        return this.afterInitialize.selector;
+        _setTickLowerLast(key.toId(), _getTickLower(tick, key.tickSpacing));
+        return TakeProfitsHook.afterInitialize.selector;
     }
 
     function afterSwap(
-        address sender,
+        address addr,
         PoolKey calldata key,
         IPoolManager.SwapParams calldata params,
-        BalanceDelta,
-        bytes calldata
+        BalanceDelta 
     ) external override poolManagerOnly returns (bytes4) {
-        if (sender == address(this)) return this.afterSwap.selector;
-
-        bool tryMore = true;
-        int24 currentTick;
-
-        while (tryMore) {
-            (tryMore, currentTick) = tryExecutingOrders(
-                key,
-                !params.zeroForOne
-            );
+        if (addr == address(this)) {
+            return TakeProfitsHook.afterSwap.selector;
         }
 
-        lastTicks[key.toId()] = currentTick;
-        return this.afterSwap.selector;
+        bool attemptToFillMoreOrders = true;
+        int24 currentTickLower;
+        while (attemptToFillMoreOrders) {
+            (attemptToFillMoreOrders, currentTickLower) = _tryFulfillingOrders(key, params);
+            tickLowerLasts[key.toId()] = currentTickLower;
+        }
+
+        return TakeProfitsHook.afterSwap.selector;
     }
 
-    // Core Hook External Functions
+    function _tryFulfillingOrders(PoolKey calldata key, IPoolManager.SwapParams calldata params) internal returns (bool, int24) {
+        // Get the exact current tick and use it to calculate the currentTickLower
+        (, int24 currentTick, , , , ) = poolManager.getSlot0(key.toId());
+        int24 currentTickLower = _getTickLower(currentTick, key.tickSpacing);
+        int24 lastTickLower = tickLowerLasts[key.toId()];
+
+        bool swapZeroForOne = !params.zeroForOne;
+
+        int256 swapAmountIn;
+
+        // If tick has increased (i.e. price of Token 1 has increased)
+        if (lastTickLower < currentTickLower) {
+            // Loop through all ticks between the lastTickLower and currentTickLower
+            // and execute all orders that are oneForZero
+            for (int24 tick = lastTickLower; tick < currentTickLower; ) {
+                swapAmountIn = takeProfitPositions[key.toId()][tick][
+                    swapZeroForOne
+                ];
+                if (swapAmountIn > 0) {
+                    fillOrder(key, tick, swapZeroForOne, swapAmountIn);
+
+                    // The fulfillment of the above order has changed the current tick
+                    // Refetch it and return
+                    (, currentTick, , , , ) = poolManager.getSlot0(key.toId());
+                    currentTickLower = _getTickLower(currentTick, key.tickSpacing);
+                    return (true, currentTickLower);
+                }
+                tick += key.tickSpacing;
+            }
+        }
+        // Else if tick has decreased (i.e. price of Token 0 has increased)
+        else {
+            // Loop through all ticks between the lastTickLower and currentTickLower
+            // and execute all orders that are zeroForOne
+            for (int24 tick = lastTickLower; currentTickLower < tick; ) {
+                swapAmountIn = takeProfitPositions[key.toId()][tick][
+                    swapZeroForOne
+                ];
+                if (swapAmountIn > 0) {
+                    fillOrder(key, tick, swapZeroForOne, swapAmountIn);
+
+                    // The fulfillment of the above order has changed the current tick
+                    // Refetch it and return
+                    (, currentTick, , , , ) = poolManager.getSlot0(key.toId());
+                    currentTickLower = _getTickLower(currentTick, key.tickSpacing);
+                    return (true, currentTickLower);
+                }
+                tick -= key.tickSpacing;
+            }
+        }
+
+        return (false, currentTickLower);
+    }
+
+    // Core Utilities
     function placeOrder(
         PoolKey calldata key,
-        int24 tickToSellAt,
-        bool zeroForOne,
-        uint256 inputAmount
+        int24 tick,
+        uint256 amountIn,
+        bool zeroForOne
     ) external returns (int24) {
-        // Get lower actually usable tick given `tickToSellAt`
-        int24 tick = getLowerUsableTick(tickToSellAt, key.tickSpacing);
-        // Create a pending order
-        pendingOrders[key.toId()][tick][zeroForOne] += inputAmount;
+        int24 tickLower = _getTickLower(tick, key.tickSpacing);
+        takeProfitPositions[key.toId()][tickLower][zeroForOne] += int256(
+            amountIn
+        );
 
-        // Mint claim tokens to user equal to their `inputAmount`
-        uint256 positionId = getPositionId(key, tick, zeroForOne);
-        claimTokensSupply[positionId] += inputAmount;
-        _mint(msg.sender, positionId, inputAmount, "");
+        uint256 tokenId = getTokenId(key, tickLower, zeroForOne);
+        // If token id doesn't already exist, add it to the mapping
+        // Not every order creates a new token id, as it's possible for users to add more tokens to a pre-existing order
+        if (!tokenIdExists[tokenId]) {
+            tokenIdExists[tokenId] = true;
+            tokenIdData[tokenId] = TokenData(key, tickLower, zeroForOne);
+        }
 
-        // Depending on direction of swap, we select the proper input token
-        // and request a transfer of those tokens to the hook contract
-        address sellToken = zeroForOne
+        // Mint ERC-1155 tokens to the user
+        _mint(msg.sender, tokenId, amountIn, "");
+        tokenIdTotalSupply[tokenId] += amountIn;
+
+        // Extract the address of the token the user wants to sell
+        address tokenToBeSoldContract = zeroForOne
             ? Currency.unwrap(key.currency0)
             : Currency.unwrap(key.currency1);
-        IERC20(sellToken).transferFrom(msg.sender, address(this), inputAmount);
 
-        // Return the tick at which the order was actually placed
-        return tick;
+        // Move the tokens to be sold from the user to this contract
+        IERC20(tokenToBeSoldContract).transferFrom(
+            msg.sender,
+            address(this),
+            amountIn
+        );
+
+        return tickLower;
     }
 
     function cancelOrder(
         PoolKey calldata key,
-        int24 tickToSellAt,
+        int24 tick,
         bool zeroForOne
     ) external {
-        // Get lower actually usable tick for their order
-        int24 tick = getLowerUsableTick(tickToSellAt, key.tickSpacing);
-        uint256 positionId = getPositionId(key, tick, zeroForOne);
+        int24 tickLower = _getTickLower(tick, key.tickSpacing);
+        uint256 tokenId = getTokenId(key, tickLower, zeroForOne);
 
-        // Check how many claim tokens they have for this position
-        uint256 positionTokens = balanceOf(msg.sender, positionId);
-        if (positionTokens == 0) revert InvalidOrder();
+        // Get the amount of tokens the user's ERC-1155 tokens represent
+        uint256 amountIn = balanceOf(msg.sender, tokenId);
+        require(amountIn > 0, "TakeProfitsHook: No orders to cancel");
 
-        // Remove their `positionTokens` worth of position from pending orders
-        // NOTE: We don't want to zero this out directly because other users may have the same position
-        pendingOrders[key.toId()][tick][zeroForOne] -= positionTokens;
-        // Reduce claim token total supply and burn their share
-        claimTokensSupply[positionId] -= positionTokens;
-        _burn(msg.sender, positionId, positionTokens);
-
-        // Send them their input token
-        Currency token = zeroForOne ? key.currency0 : key.currency1;
-        token.transfer(msg.sender, positionTokens);
-    }
-
-    function redeem(
-        PoolKey calldata key,
-        int24 tickToSellAt,
-        bool zeroForOne,
-        uint256 inputAmountToClaimFor
-    ) external {
-        // Get lower actually usable tick for their order
-        int24 tick = getLowerUsableTick(tickToSellAt, key.tickSpacing);
-        uint256 positionId = getPositionId(key, tick, zeroForOne);
-
-        // If no output tokens can be claimed yet i.e. order hasn't been filled
-        // throw error
-        if (claimableOutputTokens[positionId] == 0) revert NothingToClaim();
-
-        // they must have claim tokens >= inputAmountToClaimFor
-        uint256 positionTokens = balanceOf(msg.sender, positionId);
-        if (positionTokens < inputAmountToClaimFor) revert NotEnoughToClaim();
-
-        uint256 totalClaimableForPosition = claimableOutputTokens[positionId];
-        uint256 totalInputAmountForPosition = claimTokensSupply[positionId];
-
-        // outputAmount = (inputAmountToClaimFor * totalClaimableForPosition) / (totalInputAmountForPosition)
-        uint256 outputAmount = inputAmountToClaimFor.mulDivDown(
-            totalClaimableForPosition,
-            totalInputAmountForPosition
+        takeProfitPositions[key.toId()][tickLower][zeroForOne] -= int256(
+            amountIn
         );
+        tokenIdTotalSupply[tokenId] -= amountIn;
+        _burn(msg.sender, tokenId, amountIn);
 
-        // Reduce claimable output tokens amount
-        // Reduce claim token total supply for position
-        // Burn claim tokens
-        claimableOutputTokens[positionId] -= outputAmount;
-        claimTokensSupply[positionId] -= inputAmountToClaimFor;
-        _burn(msg.sender, positionId, inputAmountToClaimFor);
-
-        // Transfer output tokens
-        Currency token = zeroForOne ? key.currency1 : key.currency0;
-        token.transfer(msg.sender, outputAmount);
+        // Extract the address of the token the user wanted to sell
+        address tokenToBeSoldContract = zeroForOne
+            ? Currency.unwrap(key.currency0)
+            : Currency.unwrap(key.currency1);
+        // Move the tokens to be sold from this contract back to the user
+        IERC20(tokenToBeSoldContract).transfer(msg.sender, amountIn);
     }
 
-    // Internal Functions
-    function tryExecutingOrders(
-        PoolKey calldata key,
-        bool executeZeroForOne
-    ) internal returns (bool tryMore, int24 newTick) {
-        (, int24 currentTick, , ) = poolManager.getSlot0(key.toId());
-        int24 lastTick = lastTicks[key.toId()];
-
-        // Tick has increased i.e. people sold Token 1 to buy Token 0
-        // i.e. Token 0 price has increased
-        // We should check if we have any orders looking to sell Token 0
-        // at ticks `lastTick` to `currentTick`
-        if (currentTick > lastTick) {
-            // Loop over all ticks from `lastTick` to `currentTick`
-            // and execute orders that are looking to sell Token 0
-            for (
-                int24 tick = lastTick;
-                tick < currentTick;
-                tick += key.tickSpacing
-            ) {
-                uint256 inputAmount = pendingOrders[key.toId()][tick][
-                    executeZeroForOne
-                ];
-                if (inputAmount > 0) {
-                    executeOrder(key, tick, executeZeroForOne, inputAmount);
-
-                    // Return true because we may have more orders to execute
-                    // from lastTick to new current tick
-                    return (true, currentTick);
-                }
-            }
-        }
-        // Tick has gone down i.e. people sold Token 0 to buy Token 1
-        // i.e. Token 1 price has increased
-        // We should check if we have any orders looking to sell Token 1
-        // at ticks `currentTick` to `lastTick`
-        else {
-            for (
-                int24 tick = lastTick;
-                tick > currentTick;
-                tick -= key.tickSpacing
-            ) {
-                uint256 inputAmount = pendingOrders[key.toId()][tick][
-                    executeZeroForOne
-                ];
-                if (inputAmount > 0) {
-                    executeOrder(key, tick, executeZeroForOne, inputAmount);
-                    return (true, currentTick);
-                }
-            }
-        }
-
-        return (false, currentTick);
-    }
-
-    function executeOrder(
+    function fillOrder(
         PoolKey calldata key,
         int24 tick,
         bool zeroForOne,
-        uint256 inputAmount
+        int256 amountIn
     ) internal {
-        // Do the actual swap and settle all balances
-        BalanceDelta delta = swapAndSettleBalances(
-            key,
-            IPoolManager.SwapParams({
-                zeroForOne: zeroForOne,
-                // We provide a negative value here to signify an "exact input for output" swap
-                amountSpecified: -int256(inputAmount),
-                // No slippage limits (maximum slippage possible)
-                sqrtPriceLimitX96: zeroForOne
-                    ? TickMath.MIN_SQRT_RATIO + 1
-                    : TickMath.MAX_SQRT_RATIO - 1
-            })
+
+        console.log("Filling order at tick = ");
+        console.logInt(tick);
+
+        // Setup the swapping parameters
+        IPoolManager.SwapParams memory swapParams = IPoolManager.SwapParams({
+            zeroForOne: zeroForOne,
+            amountSpecified: amountIn,
+            // Set the price limit to be the least possible if swapping from Token 0 to Token 1
+            // or the maximum possible if swapping from Token 1 to Token 0
+            // i.e. infinite slippage allowed
+            sqrtPriceLimitX96: zeroForOne
+                ? TickMath.MIN_SQRT_RATIO + 1
+                : TickMath.MAX_SQRT_RATIO - 1
+        });
+
+        BalanceDelta delta = abi.decode(
+            poolManager.lock(
+                abi.encodeCall(this._handleSwap, (key, swapParams))
+            ),
+            (BalanceDelta)
         );
 
-        // `inputAmount` has been deducted from this position
-        pendingOrders[key.toId()][tick][zeroForOne] -= inputAmount;
-        uint256 positionId = getPositionId(key, tick, zeroForOne);
-        uint256 outputAmount = zeroForOne
-            ? uint256(int256(delta.amount1()))
-            : uint256(int256(delta.amount0()));
+        // Update mapping to reflect that `amountIn` worth of tokens have been swapped from this order
+        takeProfitPositions[key.toId()][tick][zeroForOne] -= amountIn;
 
-        // `outputAmount` worth of tokens now can be claimed/redeemed by position holders
-        claimableOutputTokens[positionId] += outputAmount;
+        uint256 tokenId = getTokenId(key, tick, zeroForOne);
+
+        // Flip the sign of the delta as tokens we were owed by Uniswap are represented as a negative delta change
+        uint256 amountOfTokensReceivedFromSwap = zeroForOne
+            ? uint256(int256(-delta.amount1()))
+            : uint256(int256(-delta.amount0()));
+
+        // Update the amount of tokens claimable for this order
+        tokenIdClaimable[tokenId] += amountOfTokensReceivedFromSwap;
     }
 
-    function swapAndSettleBalances(
+    function _handleSwap(
         PoolKey calldata key,
-        IPoolManager.SwapParams memory params
-    ) internal returns (BalanceDelta) {
-        // Conduct the swap inside the Pool Manager
-        BalanceDelta delta = poolManager.swap(key, params, "");
+        IPoolManager.SwapParams calldata params
+    ) external returns (BalanceDelta) {
+        // delta is the BalanceDelta struct that stores the delta balance changes
+        // i.e. Change in Token 0 balance and change in Token 1 balance
+        BalanceDelta delta = poolManager.swap(key, params);
 
-        // If we just did a zeroForOne swap
-        // We need to send Token 0 to PM, and receive Token 1 from PM
+        // If this swap was a swap for Token 0 to Token 1
         if (params.zeroForOne) {
-            // Negative Value => Money leaving user's wallet
-            // Settle with PoolManager
-            if (delta.amount0() < 0) {
-                _settle(key.currency0, uint128(-delta.amount0()));
-            }
-
-            // Positive Value => Money coming into user's wallet
-            // Take from PM
-            if (delta.amount1() > 0) {
-                _take(key.currency1, uint128(delta.amount1()));
-            }
-        } else {
-            if (delta.amount1() < 0) {
-                _settle(key.currency1, uint128(-delta.amount1()));
-            }
-
+            // If we owe Uniswap Token 0, we need to send them the required amount
             if (delta.amount0() > 0) {
-                _take(key.currency0, uint128(delta.amount0()));
+                IERC20(Currency.unwrap(key.currency0)).transfer(
+                    address(poolManager),
+                    uint128(delta.amount0())
+                );
+                poolManager.settle(key.currency0);
+            }
+
+            // If we are owed Token 1, we need to `take` it from the Pool Manager
+            // NOTE: This will be a negative value, as it is a negative balance change from the pool's perspective
+            if (delta.amount1() < 0) {
+                // We flip the sign of the amount to make it positive when taking it from the pool manager
+                poolManager.take(
+                    key.currency1,
+                    address(this),
+                    uint128(-delta.amount1())
+                );
+            }
+        }
+        // Else if this swap was a swap for Token 1 to Token 0
+        else {
+            // Same as above
+            // If we owe Uniswap Token 1, we need to send them the required amount
+            if (delta.amount1() > 0) {
+                IERC20(Currency.unwrap(key.currency1)).transfer(
+                    address(poolManager),
+                    uint128(delta.amount1())
+                );
+                poolManager.settle(key.currency1);
+            }
+
+            // If we are owed Token 0, we take it from the Pool Manager
+            if (delta.amount0() < 0) {
+                poolManager.take(
+                    key.currency0,
+                    address(this),
+                    uint128(-delta.amount0())
+                );
             }
         }
 
         return delta;
     }
 
-    function _settle(Currency currency, uint128 amount) internal {
-        // Transfer tokens to PM and let it know
-        currency.transfer(address(poolManager), amount);
-        poolManager.settle(currency);
+    function redeem(
+        uint256 tokenId,
+        uint256 amountIn,
+        address destination
+    ) external {
+        // Make sure there is something to claim
+        require(
+            tokenIdClaimable[tokenId] > 0,
+            "TakeProfitsHook: No tokens to redeem"
+        );
+
+        // Make sure user has enough ERC-1155 tokens to redeem the amount they're requesting
+        uint256 balance = balanceOf(msg.sender, tokenId);
+        require(
+            balance >= amountIn,
+            "TakeProfitsHook: Not enough ERC-1155 tokens to redeem requested amount"
+        );
+
+        TokenData memory data = tokenIdData[tokenId];
+        address tokenToSendContract = data.zeroForOne
+            ? Currency.unwrap(data.poolKey.currency1)
+            : Currency.unwrap(data.poolKey.currency0);
+
+        // multiple people could have added tokens to the same order, so we need to calculate the amount to send
+        // total supply = total amount of tokens that were part of the order to be sold
+        // therefore, user's share = (amountIn / total supply)
+        // therefore, amount to send to user = (user's share * total claimable)
+
+        // amountToSend = amountIn * (total claimable / total supply)
+        // We use FixedPointMathLib.mulDivDown to avoid rounding errors
+        uint256 amountToSend = amountIn.mulDivDown(
+            tokenIdClaimable[tokenId],
+            tokenIdTotalSupply[tokenId]
+        );
+
+        tokenIdClaimable[tokenId] -= amountToSend;
+        tokenIdTotalSupply[tokenId] -= amountIn;
+        _burn(msg.sender, tokenId, amountIn);
+
+        IERC20(tokenToSendContract).transfer(destination, amountToSend);
     }
 
-    function _take(Currency currency, uint128 amount) internal {
-        // Take tokens out of PM to our hook contract
-        poolManager.take(currency, address(this), amount);
-    }
-
-    // Helper Functions
-    function getPositionId(
+    // ERC-1155 Helpers
+    function getTokenId(
         PoolKey calldata key,
-        int24 tick,
+        int24 tickLower,
         bool zeroForOne
     ) public pure returns (uint256) {
-        return uint256(keccak256(abi.encode(key.toId(), tick, zeroForOne)));
+        return
+            uint256(
+                keccak256(abi.encodePacked(key.toId(), tickLower, zeroForOne))
+            );
     }
 
-    function getLowerUsableTick(
-        int24 tick,
+    // Utility Helpers
+    function _setTickLowerLast(PoolId poolId, int24 tickLower) private {
+        tickLowerLasts[poolId] = tickLower;
+    }
+
+    function _getTickLower(
+        int24 actualTick,
         int24 tickSpacing
     ) private pure returns (int24) {
-        // E.g. tickSpacing = 60, tick = -100
-        // closest usable tick rounded-down will be -120
-
-        // intervals = -100/60 = -1 (integer division)
-        int24 intervals = tick / tickSpacing;
-
-        // since tick < 0, we round `intervals` down to -2
-        // if tick > 0, `intervals` is fine as it is
-        if (tick < 0 && tick % tickSpacing != 0) intervals--; // round towards negative infinity
-
-        // actual usable tick, then, is intervals * tickSpacing
-        // i.e. -2 * 60 = -120
+        int24 intervals = actualTick / tickSpacing;
+        if (actualTick < 0 && actualTick % tickSpacing != 0) intervals--; // round towards negative infinity
         return intervals * tickSpacing;
     }
 }
