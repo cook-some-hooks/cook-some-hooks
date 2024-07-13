@@ -1,6 +1,6 @@
 "use client";
 import { HeroHighlightComponent } from "@/components/hero-highlight";
-import Connect from "../components/connect";
+import Connect from "../../components/connect";
 import { useAccount, useDisconnect } from "wagmi";
 import { NavbarComp } from "@/components/Navbar";
 import { FollowerPointerCard } from "@/components/ui/following-pointer";
