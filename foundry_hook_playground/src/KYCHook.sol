@@ -2,10 +2,11 @@
 pragma solidity >=0.8.19;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {IPoolManager} from "@uniswap/v4-core/contracts/interfaces/IPoolManager.sol";
-import {Hooks} from "@uniswap/v4-core/contracts/libraries/Hooks.sol";
-
-import {BaseHook} from "./BaseHook.sol";
+import {IPoolManager} from "v4-core/src/interfaces/IPoolManager.sol";
+import {Hooks} from "v4-core/src/libraries/Hooks.sol";
+import {BaseHook} from "v4-periphery/BaseHook.sol";
+import {PoolKey} from "v4-core/src/types/PoolKey.sol";
+import {BeforeSwapDelta, toBeforeSwapDelta} from "v4-core/src/types/BeforeSwapDelta.sol";
 
 /**
  * @title An interface for checking whether an address has a valid kycNFT token
@@ -29,7 +30,7 @@ contract KYCSwaps is BaseHook, Ownable {
     constructor(
         IPoolManager _poolManager,
         address _kycValidity
-    ) BaseHook(_poolManager) {
+    ) BaseHook(_poolManager) Ownable(msg.sender) {
         kycValidity = IKycValidity(_kycValidity);
     }
 
@@ -54,33 +55,37 @@ contract KYCSwaps is BaseHook, Ownable {
         }
     }
 
-    function getHooksCalls() public pure override returns (Hooks.Calls memory) {
+    function getHookPermissions()
+        public
+        pure
+        override
+        returns (Hooks.Permissions memory)
+    {
         return
-            Hooks.Calls({
+            Hooks.Permissions({
                 beforeInitialize: false,
                 afterInitialize: false,
-                beforeModifyPosition: true,
-                afterModifyPosition: false,
+                beforeAddLiquidity: false,
+                beforeRemoveLiquidity: false,
+                afterAddLiquidity: false,
+                afterRemoveLiquidity: false,
                 beforeSwap: true,
                 afterSwap: false,
                 beforeDonate: false,
-                afterDonate: false
+                afterDonate: false,
+                beforeSwapReturnDelta: false,
+                afterSwapReturnDelta: false,
+                afterAddLiquidityReturnDelta: false,
+                afterRemoveLiquidityReturnDelta: false
             });
-    }
-
-    function beforeModifyPosition(
-        address,
-        IPoolManager.PoolKey calldata,
-        IPoolManager.ModifyPositionParams calldata
-    ) external view override poolManagerOnly onlyPermitKYC returns (bytes4) {
-        return BaseHook.beforeModifyPosition.selector;
     }
 
     function beforeSwap(
         address,
-        IPoolManager.PoolKey calldata,
-        IPoolManager.SwapParams calldata
-    ) external view override poolManagerOnly onlyPermitKYC returns (bytes4) {
-        return BaseHook.beforeSwap.selector;
+        PoolKey calldata,
+        IPoolManager.SwapParams calldata,
+        bytes calldata
+    ) external view override onlyByManager onlyPermitKYC returns (bytes4, BeforeSwapDelta, uint24) {
+        return (this.beforeSwap.selector, toBeforeSwapDelta(0, 0), 0);
     }
 }
