@@ -13,19 +13,19 @@ contract OpenAiSimpleLLM {
         oracleAddress = initialOracleAddress;
 
         config = IOracle.OpenAiRequest({
-            model : "gpt-4-turbo", // gpt-4-turbo gpt-4o
-            frequencyPenalty : 21, // > 20 for null
-            logitBias : "", // empty str for null
-            maxTokens : 1000, // 0 for null
-            presencePenalty : 21, // > 20 for null
-            responseFormat : "{\"type\":\"text\"}",
-            seed : 0, // null
-            stop : "", // null
-            temperature : 10, // Example temperature (scaled up, 10 means 1.0), > 20 means null
-            topP : 101, // Percentage 0-100, > 100 means null
-            tools : "",
-            toolChoice : "", // "none" or "auto"
-            user : "" // null
+            model: "gpt-4-turbo", // gpt-4-turbo gpt-4o
+            frequencyPenalty: 21, // > 20 for null
+            logitBias: "", // empty str for null
+            maxTokens: 1000, // 0 for null
+            presencePenalty: 21, // > 20 for null
+            responseFormat: '{"type":"text"}',
+            seed: 0, // null
+            stop: "", // null
+            temperature: 10, // Example temperature (scaled up, 10 means 1.0), > 20 means null
+            topP: 101, // Percentage 0-100, > 100 means null
+            tools: "",
+            toolChoice: "", // "none" or "auto"
+            user: "" // null
         });
     }
 
@@ -61,10 +61,13 @@ contract OpenAiSimpleLLM {
     // @param role The role of the message
     // @param content The content of the message
     // @return The created message
-    function createTextMessage(string memory role, string memory content) private pure returns (IOracle.Message memory) {
+    function createTextMessage(
+        string memory role,
+        string memory content
+    ) private pure returns (IOracle.Message memory) {
         IOracle.Message memory newMessage = IOracle.Message({
-        role : role,
-        content : new IOracle.Content[](1)
+            role: role,
+            content: new IOracle.Content[](1)
         });
         newMessage.content[0].contentType = "text";
         newMessage.content[0].value = content;

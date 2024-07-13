@@ -82,7 +82,7 @@ def main():
         new_response = contract.functions.response().call()
         print(".", end="", flush=True)
 
-    print(f"\nImage generation completed, image URL: {new_response}")
+    print(f"\nResponse: {new_response}")
 
 if __name__ == "__main__":
     main()
