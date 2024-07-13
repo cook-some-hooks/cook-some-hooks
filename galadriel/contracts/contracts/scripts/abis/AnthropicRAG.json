@@ -11,84 +11,10 @@
       "type": "constructor"
     },
     {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "owner",
-          "type": "address"
-        },
-        {
-          "indexed": true,
-          "internalType": "uint256",
-          "name": "chatId",
-          "type": "uint256"
-        }
-      ],
-      "name": "ChatCreated",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "newOracleAddress",
-          "type": "address"
-        }
-      ],
-      "name": "OracleAddressUpdated",
-      "type": "event"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "string",
-          "name": "message",
-          "type": "string"
-        },
-        {
-          "internalType": "uint256",
-          "name": "runId",
-          "type": "uint256"
-        }
-      ],
-      "name": "addMessage",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
       "inputs": [
         {
           "internalType": "uint256",
           "name": "",
-          "type": "uint256"
-        }
-      ],
-      "name": "chatRuns",
-      "outputs": [
-        {
-          "internalType": "address",
-          "name": "owner",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "messagesCount",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "chatId",
           "type": "uint256"
         }
       ],
@@ -129,61 +55,15 @@
     },
     {
       "inputs": [],
-      "name": "knowledgeBase",
+      "name": "message",
       "outputs": [
         {
           "internalType": "string",
-          "name": "",
+          "name": "role",
           "type": "string"
         }
       ],
       "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "runId",
-          "type": "uint256"
-        },
-        {
-          "internalType": "string",
-          "name": "response",
-          "type": "string"
-        },
-        {
-          "internalType": "string",
-          "name": "errorMessage",
-          "type": "string"
-        }
-      ],
-      "name": "onOracleFunctionResponse",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "runId",
-          "type": "uint256"
-        },
-        {
-          "internalType": "string[]",
-          "name": "documents",
-          "type": "string[]"
-        },
-        {
-          "internalType": "string",
-          "name": "",
-          "type": "string"
-        }
-      ],
-      "name": "onOracleKnowledgeBaseQueryResponse",
-      "outputs": [],
-      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
@@ -251,29 +131,29 @@
               "type": "uint32"
             }
           ],
-          "internalType": "struct IOracle.LlmResponse",
-          "name": "response",
+          "internalType": "struct IOracle.OpenAiResponse",
+          "name": "_response",
           "type": "tuple"
         },
         {
           "internalType": "string",
-          "name": "errorMessage",
+          "name": "_errorMessage",
           "type": "string"
         }
       ],
-      "name": "onOracleLlmResponse",
+      "name": "onOracleOpenAiLlmResponse",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
     },
     {
       "inputs": [],
-      "name": "oracleAddress",
+      "name": "response",
       "outputs": [
         {
-          "internalType": "address",
+          "internalType": "string",
           "name": "",
-          "type": "address"
+          "type": "string"
         }
       ],
       "stateMutability": "view",
@@ -282,57 +162,32 @@
     {
       "inputs": [
         {
-          "internalType": "address",
-          "name": "newOracleAddress",
-          "type": "address"
+          "internalType": "string",
+          "name": "_message",
+          "type": "string"
         }
       ],
-      "name": "setOracleAddress",
+      "name": "sendMessage",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
     },
     {
       "inputs": [
-        {
-          "internalType": "string",
-          "name": "message",
-          "type": "string"
-        }, 
-        {
-          "internalType": "string",
-          "name": "knowledgeBaseCID",
-          "type": "string"
-        }
+          {
+              "internalType": "string",
+              "name": "_message",
+              "type": "string"
+          },
+          {
+              "internalType": "string",
+              "name": "knowledgeBaseCID",
+              "type": "string"
+          }
       ],
-      "name": "startChat",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
+      "name": "sendMessageRAG",
+      "outputs": [],
       "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "name": "toolRunning",
-      "outputs": [
-        {
-          "internalType": "string",
-          "name": "",
-          "type": "string"
-        }
-      ],
-      "stateMutability": "view",
       "type": "function"
     }
   ]
