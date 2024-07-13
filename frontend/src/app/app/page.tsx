@@ -25,6 +25,7 @@ export default function Home() {
     e.preventDefault();
     console.log("Form submitted");
   };
+
   return (
     <main className="">
       <FollowerPointerCard>
