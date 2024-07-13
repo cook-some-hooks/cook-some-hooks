@@ -91,7 +91,15 @@ async function main() {
     console.error("Failed to parse response as JSON:", error);
   }
 
-  message = "Build a hook, using your general knowledge and the codes that are provided to you \
+  let instructions = fs.readFile("/Users/tanguyvans/Desktop/hackathon/eth_bxl/cook-some-hooks/galadriel/contracts/contracts/scripts/instructions.txt", 'utf8', (err, data) => {
+    if (err) {
+      console.error('Error reading the file:', err);
+      return;
+    }
+    console.log('File contents:', data);
+  });
+
+  message = instructions +  "Build a hook, using your general knowledge and the codes that are provided to you \
   I want to build a:" + userMessage + "\
   You have have allready made of the hooks that are usefull for you: \
   hooks: " + hookSelection + "\
