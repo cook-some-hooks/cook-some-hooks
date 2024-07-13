@@ -50,15 +50,16 @@ export function NavbarApp() {
                   Connect Wallet
                 </button>
               )}
+
               {isConnected && (
                 <div>
-                  {shortenAddress(address || "")}{" "}
-                  <span
+                  <w3m-button />
+                  {/* <span
                     className="text-red-500 px-5"
                     onClick={() => disconnect()}
                   >
                     X
-                  </span>
+                  </span> */}
                 </div>
               )}
             </li>
