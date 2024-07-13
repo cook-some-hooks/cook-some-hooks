@@ -1,0 +1,51 @@
+{
+  "name": "arbitrum-contracts",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "node": "npx hardhat node",
+    "compile": "npx hardhat compile",
+    "test": "npx hardhat test",
+    "whitelist": "npx hardhat run scripts/whitelist.ts --network galadriel",
+    "deployAll:localhost": "npx hardhat run scripts/deployAll.ts --network localhost",
+    "deployAll:galadriel": "npx hardhat run scripts/deployAll.ts --network galadriel",
+    "deployQuickstart": "npx hardhat run scripts/deployQuickstart.ts --network galadriel",
+    "deploySimpleLlm": "npx hardhat run scripts/deploySimpleLlm.ts --network galadriel",
+    "deployAgent": "npx hardhat run scripts/deployAgent.ts --network galadriel",
+    "deployTest:localhost": "npx hardhat run scripts/deployTest.ts --network localhost",
+    "deployTest:galadriel": "npx hardhat run scripts/deployTest.ts --network galadriel",
+    "callQuickstart": "npx hardhat run scripts/callQuickstart.ts --network galadriel",
+    "callSimpleLlm": "npx hardhat run scripts/callSimpleLlm.ts --network galadriel",
+    "callAgent": "npx hardhat run scripts/callAgent.ts --network galadriel",
+    "generateStandardJson": "npx hardhat solidity-json",
+    "debug": "npx hardhat test scripts/debugContract.ts"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "@xyrusworx/hardhat-solidity-json": "^1.0.2",
+    "ethers": "^6.11.0",
+    "hardhat": "^2.19.5",
+    "hardhat-deploy": "^0.11.45",
+    "hardhat-deploy-ethers": "^0.4.1",
+    "solidity-docgen": "^0.6.0-beta.36"
+  },
+  "dependencies": {
+    "@nomicfoundation/hardhat-chai-matchers": "^2.0.0",
+    "@nomicfoundation/hardhat-ethers": "^3.0.5",
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.0",
+    "@nomicfoundation/hardhat-verify": "^2.0.0",
+    "@openzeppelin/contracts": "^5.0.2",
+    "@typechain/ethers-v6": "^0.5.0",
+    "@typechain/hardhat": "^9.0.0",
+    "@types/chai": "^4.2.0",
+    "@types/mocha": ">=9.1.0",
+    "chai": "^4.2.0",
+    "dotenv": "^16.4.4",
+    "hardhat-gas-reporter": "^1.0.8",
+    "solidity-coverage": "^0.8.1",
+    "ts-node": "^10.9.2",
+    "typechain": "^8.3.0",
+    "typescript": "^5.3.3"
+  }
+}
