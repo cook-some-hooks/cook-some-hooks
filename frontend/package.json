@@ -10,14 +10,10 @@
   },
   "dependencies": {
     "@web3modal/wagmi": "^5.0.6",
-    "clsx": "^2.1.1",
-    "framer-motion": "^11.3.2",
-    "mini-svg-data-uri": "^1.4.4",
     "next": "14.2.5",
     "pino-pretty": "^11.2.1",
     "react": "^18",
     "react-dom": "^18",
-    "tailwind-merge": "^2.4.0",
     "wagmi": "^2.10.10"
   },
   "devDependencies": {
