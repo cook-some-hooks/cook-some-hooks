@@ -1,6 +1,9 @@
 import {Contract, ethers, TransactionReceipt, Wallet} from "ethers";
 import ABI from "./abis/AnthropicChatGpt.json";
 import * as readline from 'readline';
+import * as fs from 'fs';
+import * as path from 'path';
+import { exec } from 'child_process';
 
 require("dotenv").config()
 
@@ -89,21 +92,51 @@ async function main() {
   I want to build a:" + userMessage + "\
   You have have allready made of the hooks that are usefull for you: \
   hooks: " + hookSelection + "\
-  Only output a solidity code for the hook you want to build. Nothing more!!!"
+  Only output a solidity code for the hook you want to build. Nothing more!!!\
+  After writing the solodity do not provide any comments or explanations. Just the code."
 
-  let response = await queryLlm(contract, userMessage, "QmQiUb8Rwwv1SKn2nvnWeq9WaHRdmSXc4WWUqMKs6uuxSU")
-  console.log(response);
-  if (!response) {
-    console.error("No response from LLM")
-    return
+  let attemptCounter = 0;
+  let returnCode = -1;
+  let result = "the hook was not able to compute";
+
+  while (attemptCounter < 5 && returnCode !== 0) {
+    const fileName = `NewHook.sol`;
+
+    let response = await queryLlm(contract, message, "QmQiUb8Rwwv1SKn2nvnWeq9WaHRdmSXc4WWUqMKs6uuxSU")
+    
+    console.log(response);
+    if (!response) {
+      console.error("No response from LLM")
+      return
+    }
+    const solidityCodeMatch = response.match(/```solidity([\s\S]*?)```/);
+    let solidityCode: string | undefined;
+  
+    if (solidityCodeMatch && solidityCodeMatch[1]) {
+      solidityCode = solidityCodeMatch[1].trim();
+    } else {
+      console.error("No Solidity code found in the response.");
+      return;
+    }
+
+    console.log("solidity code: ", solidityCode);
+    saveToSol(solidityCode, "", "NewHook.sol");
+
+    try {
+      const { stdout, stderr, returncode } = await compileContract(fileName);
+      result = "the hook was able to compute";
+      break;
+    } catch (error) {
+      console.error("Error compiling contract:", error);
+      message = `
+      Here is the solidity code: \n\n${solidityCode}\n\n
+      I get this error when compiling the contract: \n\n${error}\n\nOUTPUT: Only the fixed solidity code
+      `;
+    }
+    attemptCounter += 1;
   }
-  const solidityCodeMatch = response.match(/```solidity([\s\S]*?)```/);
-  if (solidityCodeMatch && solidityCodeMatch[1]) {
-    const solidityCode = solidityCodeMatch[1].trim();
-    console.log(solidityCode);
-  } else {
-    console.error("No Solidity code found in the response.");
-  } 
+
+  console.log(result);
 }
 
 async function getUserInput(): Promise<string | undefined> {
@@ -129,7 +162,6 @@ async function getUserInput(): Promise<string | undefined> {
     rl.close()
   }
 }
-
 
 function getChatId(receipt: TransactionReceipt, contract: Contract) {
   let chatId
@@ -167,6 +199,36 @@ async function getNewMessages(
     }
   })
   return newMessages;
+}
+
+function saveToSol(content: string, folderPath: string, fileName: string): void {
+  // Ensure the file has the .sol extension
+  if (!fileName.endsWith('.sol')) {
+      fileName += '.sol';
+  }
+
+  // Combine the folder path and file name to get the full file path
+  const filePath = path.join(folderPath, fileName);
+  
+  // Open the file in write mode and write the content
+  fs.writeFileSync(filePath, content);
+
+  console.log(`File ${filePath} has been created and saved successfully.`);
+}
+
+function compileContract(fileToBuild: string): Promise<{ stdout: string, stderr: string, returncode: number }> {
+  const command = `forge build src/generated/${fileToBuild}`;
+  const workingDirectory = "/Users/miquel/Desktop/git/miqlar/cook-some-hooks/foundry_hook_playground";
+
+  return new Promise((resolve, reject) => {
+      exec(command, { cwd: workingDirectory }, (error, stdout, stderr) => {
+          if (error) {
+              reject({ stdout, stderr, returncode: error.code });
+          } else {
+              resolve({ stdout, stderr, returncode: 0 });
+          }
+      });
+  });
 }
 
 main()
