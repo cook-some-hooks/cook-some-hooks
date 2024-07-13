@@ -1,27 +1,30 @@
 "use client"
-import React from 'react'
+import React, { useState } from 'react'
 import { useDeployContract, useWaitForTransactionReceipt, useConfig } from 'wagmi'
 import contractAbi from './abi.json'
 
 export function DeployContract() {
   const config = useConfig()
+  const [errorDetails, setErrorDetails] = useState('')
   const { deployContract, data: deployHash, error, isError, isPending, isSuccess } = useDeployContract({
     config,
   })
 
-  const { data: txReceipt } = useWaitForTransactionReceipt({
+  const { data: txReceipt, isSuccess: isReceiptSuccess } = useWaitForTransactionReceipt({
     hash: deployHash,
   })
 
   const handleDeploy = async () => {
+    setErrorDetails('')
     try {
       await deployContract({
         abi: contractAbi,
         bytecode: '0x608060405234801561000f575f80fd5b5060043610610034575f3560e01c80632e64cec1146100385780636057361d14610056575b5f80fd5b610040610072565b60405161004d919061009b565b60405180910390f35b610070600480360381019061006b91906100e2565b61007a565b005b5f8054905090565b805f8190555050565b5f819050919050565b61009581610083565b82525050565b5f6020820190506100ae5f83018461008c565b92915050565b5f80fd5b6100c181610083565b81146100cb575f80fd5b50565b5f813590506100dc816100b8565b92915050565b5f602082840312156100f7576100f66100b4565b5b5f610104848285016100ce565b9150509291505056fea264697066735822122053e03bedfcd3bc64823abeaa29abf68928a8d90dcb9300816e202c8795c675bd64736f6c63430008190033' as `0x${string}`,
-        args: [], // No constructor arguments
+        args: [],
       })
     } catch (err) {
       console.error('Deployment error:', err)
+      setErrorDetails(err instanceof Error ? err.message : String(err))
     }
   }
 
@@ -35,22 +38,41 @@ export function DeployContract() {
         {isPending ? 'Deploying...' : 'Deploy Contract'}
       </button>
       
-      {isSuccess && txReceipt && (
+      {isSuccess && (
         <div className="mt-4 text-center">
-          <h3 className="text-xl font-bold">
-            Contract Deployment {txReceipt.status === 'success' ? 'Successful' : 'Failed'}
-          </h3>
+          <h3 className="text-xl font-bold">Transaction Submitted</h3>
           <p className="mt-2">Transaction Hash: {deployHash}</p>
-          {txReceipt.status === 'success' && (
-            <p className="mt-2">Contract Address: {txReceipt.contractAddress}</p>
+          {isReceiptSuccess && (
+            <>
+              <p className="mt-2">Status: {txReceipt?.status === 'success' ? 'Success' : 'Failed'}</p>
+              {txReceipt?.status === 'success' && (
+                <p className="mt-2">Contract Address: {txReceipt.contractAddress}</p>
+              )}
+              {txReceipt?.status !== 'success' && (
+                <p className="mt-2 text-red-500">Transaction failed. Check the transaction details for more information.</p>
+              )}
+            </>
           )}
         </div>
       )}
       
-      {isError && (
+      {(isError || errorDetails) && (
         <div className="mt-4 text-center text-red-500">
           <h3 className="text-xl font-bold">Error Deploying Contract</h3>
-          <p className="mt-2">{error?.message}</p>
+          <p className="mt-2">{error?.message || errorDetails}</p>
+        </div>
+      )}
+
+      {deployHash && (
+        <div className="mt-4 text-center">
+          <a 
+            href={`https://sepolia.etherscan.io/tx/${deployHash}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-500 hover:text-blue-700"
+          >
+            View on Etherscan
+          </a>
         </div>
       )}
     </div>
