@@ -127,7 +127,7 @@ export default function Home() {
       console.error("Compilation error:", error);
     }
   };
-  
+
   const handleDeploy = async () => {
     if (!isWorldcoinVerified) {
       alert("Please verify with Worldcoin before deploying.");
@@ -218,16 +218,20 @@ export default function Home() {
                   }
                 >
                   {!deployHash && (
-                    <Verify onSuccess={onWorldcoinSuccess} />
-                <button
-                      className=" inline-flex h-10  animate-shimmer items-center justify-center rounded-md border border-white/[0.2] bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:ring-offset-slate-50"
-                      onClick={() => {
-                        handleDeploy();
-                      }}
-                      disabled={!isWorldcoinVerified}
-                >
-                      {isWorldcoinVerified ? "Compile & Deploy" : "Verify with Worldcoin to Deploy"}
-                    </button>
+                    <>
+                      <Verify onSuccess={onWorldcoinSuccess} />
+                      <button
+                        className=" inline-flex h-10  animate-shimmer items-center justify-center rounded-md border border-white/[0.2] bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:ring-offset-slate-50"
+                        onClick={() => {
+                          handleDeploy();
+                        }}
+                        disabled={!isWorldcoinVerified}
+                      >
+                        {isWorldcoinVerified
+                          ? "Compile & Deploy"
+                          : "Verify with Worldcoin to Deploy"}
+                      </button>
+                    </>
                   )}
                   {isSuccess && (
                     <div className="mt-4 text-center">
