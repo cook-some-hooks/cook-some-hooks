@@ -9,11 +9,11 @@ async function main() {
         "function response() public view returns (string)"
       ];
 
-  if (!process.env.QUICKSTART_CONTRACT_ADDRESS) {
-    throw new Error("QUICKSTART_CONTRACT_ADDRESS env variable is not set.");
+  if (!process.env.SIMPLELLM_CONTRACT_ADDRESS) {
+    throw new Error("SIMPLELLM_CONTRACT_ADDRESS env variable is not set.");
   }
 
-  const contractAddress = process.env.QUICKSTART_CONTRACT_ADDRESS;
+  const contractAddress = process.env.SIMPLELLM_CONTRACT_ADDRESS;
   const [signer] = await ethers.getSigners();
 
   // Create a contract instance

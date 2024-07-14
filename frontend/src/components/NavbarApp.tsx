@@ -29,7 +29,7 @@ export function NavbarApp() {
         >
           <img src="/logo.png" className="h-14" alt=" Logo" />
           <span className="self-center text-2xl font-Jetmono whitespace-nowrap dark:text-white">
-            'Cook some Hook
+            &apos;Cook some Hook
           </span>
         </a>
 
@@ -50,17 +50,8 @@ export function NavbarApp() {
                   Connect Wallet
                 </button>
               )}
-              {isConnected && (
-                <div>
-                  {shortenAddress(address || "")}{" "}
-                  <span
-                    className="text-red-500 px-5"
-                    onClick={() => disconnect()}
-                  >
-                    X
-                  </span>
-                </div>
-              )}
+
+              {isConnected && <w3m-button />}
             </li>
           </ul>
         </div>
