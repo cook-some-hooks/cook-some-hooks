@@ -188,16 +188,24 @@ export default function Home() {
                   value={prompt}
                 />
               </LabelInputContainer>
-              <div className="flex flex-row items-center gap-3 my-3">
-                API
-                <Toggle
-                  defaultChecked={isGaladriel}
-                  icons={false}
-                  onChange={() => {
-                    setIsGaladriel((val) => !val);
-                  }}
-                />
-                Galadriel
+              <div className="flex flex-row gap-2 mb-3">
+                <div className="flex flex-row items-center gap-3 my-3">
+                  API
+                  <Toggle
+                    defaultChecked={isGaladriel}
+                    icons={false}
+                    onChange={() => {
+                      setIsGaladriel((val) => !val);
+                    }}
+                  />
+                  Galadriel
+                </div>
+                {isWorldcoinVerified && (
+                  <div className="flex border-l  flex-row items-center gap-3 my-3 pl-2 ">
+                    world ID verified{" "}
+                    <img src="/verified.png" className="h-5 w-5" />
+                  </div>
+                )}
               </div>
               <button
                 disabled={!isConnected}
@@ -213,11 +221,12 @@ export default function Home() {
                 )}
                 <BottomGradient />
               </button>
+
               <div
                 className={
                   deployHash
                     ? "flex flex-row justify-evenly w-full p-1 items-center"
-                    : " flex justify-end w-full p-1 items-end"
+                    : " flex justify-end w-full  items-end"
                 }
               >
                 {!deployHash && (
