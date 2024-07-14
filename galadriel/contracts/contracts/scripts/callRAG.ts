@@ -7,7 +7,7 @@ import { exec } from 'child_process';
 
 require("dotenv").config()
 
-const workingDirectory = '/Users/tanguyvans/Desktop/hackathon/eth_bxl/cook-some-hooks/foundry_hook_playground';
+const workingDirectory = '/Users/tanguyvans/Desktop/hackathon/eth_bxl/cook-some-hooks/';
 
 interface Message {
   role: string,
@@ -67,7 +67,7 @@ async function main() {
   }
 
   let message = "Based on what I want to build what are the best codes to be used in the project? \
-  Only output their filenames in a list format. \
+  Only output their filenames in a list format. If you don't know which code to use, output all the codes that are available.\
   [example]:\
   userMessage: \
   I want to build whitelist hook with gaz prices\
@@ -91,7 +91,7 @@ async function main() {
     console.error("Failed to parse response as JSON:", error);
   }
 
-  let instructions = fs.readFile("/Users/tanguyvans/Desktop/hackathon/eth_bxl/cook-some-hooks/galadriel/contracts/contracts/scripts/instructions.txt", 'utf8', (err, data) => {
+  let instructions = fs.readFile(workingDirectory + "galadriel/contracts/contracts/scripts/instructions.txt", 'utf8', (err, data) => {
     if (err) {
       console.error('Error reading the file:', err);
       return;
@@ -99,12 +99,21 @@ async function main() {
     console.log('File contents:', data);
   });
 
-  message = instructions +  "Build a hook, using your general knowledge and the codes that are provided to you \
-  I want to build a:" + userMessage + "\
-  You have have allready made of the hooks that are usefull for you: \
-  hooks: " + hookSelection + "\
-  Only output a solidity code for the hook you want to build. Nothing more!!!\
-  After writing the solodity do not provide any comments or explanations. Just the code."
+  let examples = fs.readFile(workingDirectory + "galadriel/contracts/contracts/scripts/examples.txt", 'utf8', (err, data) => {
+    if (err) {
+      console.error('Error reading the file:', err);
+      return;
+    }
+    console.log('File contents:', data);
+  });
+
+  message = instructions +  `Build a hook, using your general knowledge and the codes that are provided to you \
+  I want to build a:` + userMessage + `
+  You have have allready made of the hooks that are usefull for you: 
+  hooks: ` + hookSelection + `
+  Only output a solidity code for the hook you want to build. Nothing more!!!
+  After writing the solodity do not provide any comments or explanations. Just the code.`
+  + examples;
 
   let attemptCounter = 0;
   let returnCode = -1;
@@ -115,7 +124,6 @@ async function main() {
 
     let response = await queryLlm(contract, message, "QmQiUb8Rwwv1SKn2nvnWeq9WaHRdmSXc4WWUqMKs6uuxSU")
     
-    console.log(response);
     if (!response) {
       console.error("No response from LLM")
       return
@@ -131,7 +139,7 @@ async function main() {
     }
 
     console.log("solidity code: ", solidityCode);
-    saveToSol(solidityCode, workingDirectory + "/src/generated", "NewHook.sol");
+    saveToSol(solidityCode, workingDirectory + "foundry_hook_playground/src/generated", "NewHook.sol");
 
     try {
       const { stdout, stderr, returncode } = await compileContract(fileName);
@@ -139,8 +147,7 @@ async function main() {
       break;
     } catch (error) {
       console.error("Error compiling contract:", JSON.stringify(error, null, 2));
-      message = `
-      Here is the solidity code: \n\n${solidityCode}\n\n
+      message = instructions + `Here is the solidity code: \n\n${solidityCode}\n\n
       I get this error when compiling the contract: \n\n${JSON.stringify(error, null, 2)}\n\nOUTPUT: Only the fixed solidity code
       `;
     }
@@ -231,7 +238,7 @@ function compileContract(fileToBuild: string): Promise<{ stdout: string, stderr:
   const command = `forge build src/generated/${fileToBuild}`;
 
   return new Promise((resolve, reject) => {
-      exec(command, { cwd: workingDirectory }, (error, stdout, stderr) => {
+      exec(command, { cwd: workingDirectory+"foundry_hook_playground" }, (error, stdout, stderr) => {
           if (error) {
               reject({ stdout, stderr, returncode: error.code });
           } else {
