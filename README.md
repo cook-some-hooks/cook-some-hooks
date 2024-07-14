@@ -49,7 +49,7 @@ cook-some-hooks/
 
 ## Demo
 
-vercel.com
+https://cook-some-hook.vercel.app/
 
 ## Team
 
