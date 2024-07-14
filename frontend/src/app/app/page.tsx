@@ -1,5 +1,6 @@
 "use client";
 import datajson from "./data.json";
+import Toggle from "react-toggle";
 
 import {
   useAccount,
@@ -61,11 +62,8 @@ export default function Home() {
     setSelectedTokens(tokens);
   };
 
-  const onWorldcoinSuccess = () => {
-    setIsWorldcoinVerified(true);
-  };
-
   const [prompt, setPrompt] = useState("");
+  const [isGaladriel, setIsGaladriel] = useState(false);
 
   const [generatedData, setGenereatedData] = useState<any>({});
   const [response, setResponse] = useState("");
@@ -78,18 +76,18 @@ export default function Home() {
 
     // const data = await res.json();
 
-    const res = await fetch("/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt, address }),
-    });
+    // const res = await fetch("/api/chat", {
+    //   method: "POST",
+    //   headers: { "Content-Type": "application/json" },
+    //   body: JSON.stringify({ prompt, address }),
+    // });
 
-    const data = await res.json();
+    // const data = await res.json();
 
-    setGenereatedData(data.res);
-    setResponse(data.res.solidity_code);
-    // setResponse(datajson.res.solidity_code);
-    // setGenereatedData(datajson.res);
+    // setGenereatedData(data.res);
+    // setResponse(data.res.solidity_code);
+    setResponse(datajson.res.solidity_code);
+    setGenereatedData(datajson.res);
 
     setloader(false);
     setloaderText("");
@@ -134,7 +132,7 @@ export default function Home() {
       return;
     }
 
-    const files = await compileContract();
+    // const files = await compileContract();
     // console.log(files);
     const abi = generatedData.abi;
     const bytecode = generatedData.bytecode as `0x${string}`;
@@ -190,6 +188,17 @@ export default function Home() {
                   value={prompt}
                 />
               </LabelInputContainer>
+              <div className="flex flex-row items-center gap-3 my-3">
+                API
+                <Toggle
+                  defaultChecked={isGaladriel}
+                  icons={false}
+                  onChange={() => {
+                    setIsGaladriel((val) => !val);
+                  }}
+                />
+                Galadriel
+              </div>
               <button
                 disabled={!isConnected}
                 className={`cursor-pointer bg-gradient-to-br relative group/btn from-black dark:from-zinc-900 dark:to-zinc-900 to-neutral-600 block dark:bg-zinc-800 w-full text-white rounded-md h-10 font-medium shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:shadow-[0px_1px_0px_0px_var(--zinc-800)_inset,0px_-1px_0px_0px_var(--zinc-800)_inset] ${isConnected ? "" : " opacity-50 cursor-not-allowed"}`}
@@ -204,76 +213,81 @@ export default function Home() {
                 )}
                 <BottomGradient />
               </button>
+              <div
+                className={
+                  deployHash
+                    ? "flex flex-row justify-evenly w-full p-1 items-center"
+                    : " flex justify-end w-full p-1 items-end"
+                }
+              >
+                {!deployHash && (
+                  <>
+                    {response && (
+                      <Verify
+                        setIsWorldcoinVerified={setIsWorldcoinVerified}
+                        isWorldcoinVerified={isWorldcoinVerified}
+                      />
+                    )}
+                    {isWorldcoinVerified && (
+                      <button
+                        className=" inline-flex h-10 w-full mt-10  animate-shimmer items-center justify-center rounded-md border border-white/[0.2] bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:ring-offset-slate-50"
+                        onClick={() => {
+                          handleDeploy();
+                        }}
+                      >
+                        Compile & Deploy
+                      </button>
+                    )}
+                  </>
+                )}
+                {isSuccess && (
+                  <div className="mt-4 text-center">
+                    {/* <p className="mt-2">Transaction Hash: {deployHash}</p> */}
+                    {isReceiptSuccess && (
+                      <>
+                        <p className="mt-2">
+                          Status:{" "}
+                          {txReceipt?.status === "success"
+                            ? "Success"
+                            : "Failed"}
+                        </p>
+                        {txReceipt?.status === "success" && (
+                          <p className="mt-2">
+                            Contract Address: {txReceipt.contractAddress}
+                          </p>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )}
+                {deployHash && (
+                  <div className="mt-4 ">
+                    <a
+                      href={`https://sepolia.etherscan.io/tx/${deployHash}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-500 hover:text-blue-700"
+                    >
+                      View on Etherscan
+                    </a>
+                  </div>
+                )}
+                {isError && (
+                  <div className="mt-4 text-center text-red-500">
+                    <h3 className="text-xl font-bold">
+                      Error Deploying Contract
+                    </h3>
+                    <p className="mt-2">{error?.message}</p>
+                  </div>
+                )}
+              </div>
             </form>
           </div>
           {isTransitioned && (
             <div className="h-[80vh] w-[60%]  flex-col  overflow-scroll rounded-md border border-white/[0.2]  mt-10 flex items-center justify-center bg-gray-200 dark:bg-black transition-opacity duration-500">
               <div className="w-full h-full items-end flex flex-col">
                 {/* {response && response} */}
-                <div
-                  className={
-                    deployHash
-                      ? "flex flex-row justify-evenly w-full p-1 items-center"
-                      : " flex justify-end w-full p-1 items-end"
-                  }
-                >
-                  {!deployHash && (
-                    <>
-                      <Verify onSuccess={onWorldcoinSuccess} />
-                      <button
-                        className=" inline-flex h-10  animate-shimmer items-center justify-center rounded-md border border-white/[0.2] bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:ring-offset-slate-50"
-                        onClick={() => {
-                          handleDeploy();
-                        }}
-                        disabled={!isWorldcoinVerified}
-                      >
-                        {isWorldcoinVerified
-                          ? "Compile & Deploy"
-                          : "Verify with Worldcoin to Deploy"}
-                      </button>
-                    </>
-                  )}
-                  {isSuccess && (
-                    <div className="mt-4 text-center">
-                      {/* <p className="mt-2">Transaction Hash: {deployHash}</p> */}
-                      {isReceiptSuccess && (
-                        <>
-                          <p className="mt-2">
-                            Status:{" "}
-                            {txReceipt?.status === "success"
-                              ? "Success"
-                              : "Failed"}
-                          </p>
-                          {txReceipt?.status === "success" && (
-                            <p className="mt-2">
-                              Contract Address: {txReceipt.contractAddress}
-                            </p>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  )}
-                  {deployHash && (
-                    <div className="mt-4 ">
-                      <a
-                        href={`https://sepolia.etherscan.io/tx/${deployHash}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-500 hover:text-blue-700"
-                      >
-                        View on Etherscan
-                      </a>
-                    </div>
-                  )}
-                  {isError && (
-                    <div className="mt-4 text-center text-red-500">
-                      <h3 className="text-xl font-bold">
-                        Error Deploying Contract
-                      </h3>
-                      <p className="mt-2">{error?.message}</p>
-                    </div>
-                  )}
-                </div>
+
                 <div className={"w-full h-[10vh]"}>
                   <SolidityCode code={response} />
                 </div>
