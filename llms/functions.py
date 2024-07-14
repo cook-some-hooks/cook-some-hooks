@@ -246,3 +246,26 @@ def rate_limit(min_interval):
 
         return wrapped
     return decorator
+
+
+def write_to_file(filename, text):
+    """
+    Write the given text to a file, overwriting any existing content.
+    
+    :param filename: The name of the file to write to
+    :param text: The text to write to the file
+    """
+    with open(filename, 'w') as file:
+        file.write(text)
+
+
+def read_from_file(filename):
+    """
+    Read the content of a file and return it.
+    
+    :param filename: The name of the file to read from
+    :return: The content of the file as a string
+    """
+    with open(filename, 'r') as file:
+        content = file.read()
+    return content
