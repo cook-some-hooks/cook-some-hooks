@@ -65,20 +65,13 @@ def hello():
     return "hi"
 
 @app.route('/invoke', methods=['POST'])
-@rate_limit(10)
 def invoke():
     data = request.get_json()
     prompt = data.get('prompt')
     deployer_address = data.get('deployer_address')
     print(f"----\n\u26A1\u26A1 Incoming Hook Prompt \u26A1\u26A1: {prompt}\n")
     rag_answer = rag(prompt)
-#     rag_answer = """{
-#     "PointsHook.sol": "high",
-#     "ERC721OwnershipHook.sol": "medium",
-#     "CounterHook.sol": "medium",
-#     "WhiteListHook.sol": "low",
-#     "KYCHook.sol": "low"
-# }"""
+
     print(f"\U0001F50E RAG Top 5 Example Hooks: {rag_answer}\n")
 
     final_instructions = instructions
@@ -101,8 +94,8 @@ def invoke():
 
     while (attempt_counter<5) and (returncode!=0):
         file_name = f"generated_hook_{attempt_counter}.sol"
-        #answer, conversation_history = get_claude_answer(final_instructions, conversation_history, prompt)
-        answer, conversation_history = get_openai_answer(final_instructions, conversation_history, prompt)
+        answer, conversation_history = get_claude_answer(final_instructions, conversation_history, prompt)
+        #answer, conversation_history = get_openai_answer(final_instructions, conversation_history, prompt)
 
         # BYPASS THE CHECK FOR HOOK FLAGS AT DEPLOY TIME
         answer=remove_last_brace(answer)
