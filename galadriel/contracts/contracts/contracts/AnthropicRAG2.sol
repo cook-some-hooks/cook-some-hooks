@@ -47,7 +47,7 @@ contract AnthropicRAG2 {
             model: "claude-3-5-sonnet-20240620",
             frequencyPenalty: 21, // > 20 for null
             logitBias: "", // empty str for null
-            maxTokens: 2000, // 0 for null
+            maxTokens: 4000, // 0 for null
             presencePenalty: 21, // > 20 for null
             responseFormat: '{"type":"text"}',
             seed: 0, // null

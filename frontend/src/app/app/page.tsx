@@ -25,6 +25,7 @@ import { Select } from "@/components/ui/select";
 import { Option } from "@/components/ui/option";
 import { TextArea } from "@/components/ui/textarea";
 import CoinSelector from "@/components/tokens/CoinSelector";
+import Verify from "../verify";
 
 interface Token {
   chainId: number;
@@ -48,6 +49,7 @@ export default function Home() {
   const [loader, setloader] = useState(false);
   const [loaderText, setloaderText] = useState("");
   const [selectedTokens, setSelectedTokens] = useState<Token[]>([]);
+  const [isWorldcoinVerified, setIsWorldcoinVerified] = useState(false);
 
   const handleButtonClick = () => {
     setIsTransitioned(true);
@@ -57,6 +59,10 @@ export default function Home() {
 
   const handleTokenSelect = (tokens: Token[]) => {
     setSelectedTokens(tokens);
+  };
+
+  const onWorldcoinSuccess = () => {
+    setIsWorldcoinVerified(true);
   };
 
   const [prompt, setPrompt] = useState("");
@@ -121,8 +127,14 @@ export default function Home() {
       console.error("Compilation error:", error);
     }
   };
+  
   const handleDeploy = async () => {
-    // const files = await compileContract();
+    if (!isWorldcoinVerified) {
+      alert("Please verify with Worldcoin before deploying.");
+      return;
+    }
+
+    const files = await compileContract();
     // console.log(files);
     const abi = generatedData.abi;
     const bytecode = generatedData.bytecode as `0x${string}`;
@@ -206,13 +218,15 @@ export default function Home() {
                   }
                 >
                   {!deployHash && (
-                    <button
+                    <Verify onSuccess={onWorldcoinSuccess} />
+                <button
                       className=" inline-flex h-10  animate-shimmer items-center justify-center rounded-md border border-white/[0.2] bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:ring-offset-slate-50"
                       onClick={() => {
                         handleDeploy();
                       }}
-                    >
-                      Compile & Deploy
+                      disabled={!isWorldcoinVerified}
+                >
+                      {isWorldcoinVerified ? "Compile & Deploy" : "Verify with Worldcoin to Deploy"}
                     </button>
                   )}
                   {isSuccess && (
