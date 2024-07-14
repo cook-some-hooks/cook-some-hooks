@@ -113,6 +113,8 @@ export default function Home() {
 
         setGenereatedData(data.res);
         setResponse(data.res.solidity_code);
+        // setResponse(datajson.res.solidity_code);
+        // setGenereatedData(datajson.res);
       }
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -279,18 +281,18 @@ export default function Home() {
               <div
                 className={
                   deployHash
-                    ? "flex flex-row justify-evenly w-full p-1 items-center"
-                    : " flex justify-end w-full  items-end"
+                    ? "flex flex-col justify-evenly w-full p-1 items-center"
+                    : " flex justify-end w-full flex-col items-end"
                 }
               >
                 {!deployHash && (
                   <>
-                    {/* {response && (
+                    {response && (
                       <Verify
                         setIsWorldcoinVerified={setIsWorldcoinVerified}
                         isWorldcoinVerified={isWorldcoinVerified}
                       />
-                    )} */}
+                    )}
                     {/* {isWorldcoinVerified && ( */}
                     {response && (
                       <button

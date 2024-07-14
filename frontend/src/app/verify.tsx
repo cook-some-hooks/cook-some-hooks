@@ -81,7 +81,7 @@ const Verify: React.FC<Props> = ({
       app_id={`app_${process.env.NEXT_PUBLIC_WLD_APP_ID}` || " "} // obtained from the Developer Portal
       action={process.env.NEXT_PUBLIC_WLD_ACTION!} // obtained from the Developer Portal
       verification_level={VerificationLevel.Device}
-      handleVerify={verifyProof}
+      // handleVerify={verifyProof}
       onSuccess={() => {
         setIsWorldcoinVerified(true);
       }}
