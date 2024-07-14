@@ -7,7 +7,8 @@ import { exec } from 'child_process';
 
 require("dotenv").config()
 
-const workingDirectory = '/Users/tanguyvans/Desktop/hackathon/eth_bxl/cook-some-hooks/';
+//const workingDirectory = '/Users/tanguyvans/Desktop/hackathon/eth_bxl/cook-some-hooks/';
+const workingDirectory = '../../../';
 
 interface Message {
   role: string,
@@ -52,7 +53,7 @@ async function main() {
   const privateKey = process.env.PRIVATE_KEY_GALADRIEL
   if (!privateKey) throw Error("Missing PRIVATE_KEY in .env")
   const contractAddress = process.env.RAG_CONTRACT_ADDRESS
-  if (!contractAddress) throw Error("Missing CHAT_CONTRACT_ADDRESS in .env")
+  if (!contractAddress) throw Error("Missing RAG_CONTRACT_ADDRESS in .env")
 
   const provider = new ethers.JsonRpcProvider(rpcUrl)
   const wallet = new Wallet(
