@@ -11,7 +11,7 @@ export async function GET(req: Request) {
 }
 export async function POST(req: Request) {
   const json = await req.json();
-  const { prompt, address } = json;
+  const { contractAddress, argsAddress } = json;
 
   // const anthropic = new Anthropic({
   //   apiKey: process.env.NEXT_CLAUDE_API_KEY,
@@ -22,11 +22,14 @@ export async function POST(req: Request) {
   //   max_tokens: 1024,
   //   messages: [{ role: "user", content: prompt }],
   // });
-  console.log(JSON.stringify({ prompt: prompt, deployer_address: address }));
-  const res = await fetch("https://a5d6-213-214-42-42.ngrok-free.app/invoke", {
+
+  const res = await fetch("https://a5d6-213-214-42-42.ngrok-free.app/verify", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ prompt: prompt, deployer_address: address }),
+    body: JSON.stringify({
+      contract_address: contractAddress,
+      constructor_address: argsAddress,
+    }),
   });
   let data = await res.json();
 
