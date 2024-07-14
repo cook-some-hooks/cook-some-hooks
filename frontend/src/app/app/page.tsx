@@ -289,12 +289,12 @@ export default function Home() {
                 {deployHash && (
                   <div className="mt-4 ">
                     <a
-                      href={`https://sepolia.etherscan.io/tx/${deployHash}`}
+                      href={`https://eth-sepolia.blockscout.com/tx/${deployHash}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-500 hover:text-blue-700"
                     >
-                      View on Etherscan
+                      View on Blockscout
                     </a>
                   </div>
                 )}
