@@ -8,7 +8,7 @@ const SolidityCode = ({ code }: any) => {
   //   .map((word: any) => ({ text: word }));
 
   return (
-    <pre style={styles.pre} className="h-[75vh]">
+    <pre className="h-[75vh] bg-[#282c34] text-[#61dafb] p-4 rounded overflow-x-auto whitespace-pre-wrap break-words">
       {/* {code} */}
       <TypewriterEffect text={code} speed={30} />
       {/* {code} */}

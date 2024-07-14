@@ -17,7 +17,7 @@ export type VerifyReply = {
   detail: string;
 };
 interface Props {
-  setIsWorldcoinVerified: boolean;
+  setIsWorldcoinVerified: any;
   isWorldcoinVerified: boolean;
 }
 
@@ -78,7 +78,7 @@ const Verify: React.FC<Props> = ({
 
   return (
     <IDKitWidget
-      app_id={process.env.NEXT_PUBLIC_WLD_APP_ID!} // obtained from the Developer Portal
+      app_id={`app_${process.env.NEXT_PUBLIC_WLD_APP_ID}` || " "} // obtained from the Developer Portal
       action={process.env.NEXT_PUBLIC_WLD_ACTION!} // obtained from the Developer Portal
       verification_level={VerificationLevel.Device}
       // handleVerify={verifyProof}

@@ -29,7 +29,7 @@ export function NavbarApp() {
         >
           <img src="/logo.png" className="h-14" alt=" Logo" />
           <span className="self-center text-2xl font-Jetmono whitespace-nowrap dark:text-white">
-            'Cook some Hook
+            &apos;Cook some Hook
           </span>
         </a>
 

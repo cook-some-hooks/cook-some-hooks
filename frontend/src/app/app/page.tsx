@@ -8,7 +8,7 @@ import {
   useDisconnect,
   useWaitForTransactionReceipt,
 } from "wagmi";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { cn } from "../../../lib/utils";
 
@@ -76,18 +76,18 @@ export default function Home() {
 
     // const data = await res.json();
 
-    // const res = await fetch("/api/chat", {
-    //   method: "POST",
-    //   headers: { "Content-Type": "application/json" },
-    //   body: JSON.stringify({ prompt, address }),
-    // });
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt, address }),
+    });
 
-    // const data = await res.json();
+    const data = await res.json();
 
-    // setGenereatedData(data.res);
-    // setResponse(data.res.solidity_code);
-    setResponse(datajson.res.solidity_code);
-    setGenereatedData(datajson.res);
+    setGenereatedData(data.res);
+    setResponse(data.res.solidity_code);
+    // setResponse(datajson.res.solidity_code);
+    // setGenereatedData(datajson.res);
 
     setloader(false);
     setloaderText("");
@@ -147,12 +147,27 @@ export default function Home() {
 
         abi: abi,
         bytecode: bytecode,
-        args: [],
+        args: [address, address],
       });
     } catch (err) {
       console.error("Deployment error:", err);
     }
   };
+  async function verifyBlockscout(address: any) {
+    const responseJson = await fetch("http://localhost:3001/compile", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contractAddress: address,
+      }),
+    });
+  }
+  useEffect(() => {
+    if (txReceipt?.status === "success") {
+      alert("Contract deployed successfully");
+      verifyBlockscout(txReceipt.contractAddress);
+    }
+  }, [txReceipt]);
   return (
     <main className="">
       <NavbarApp />
@@ -200,12 +215,12 @@ export default function Home() {
                   />
                   Galadriel
                 </div>
-                {isWorldcoinVerified && (
+                {/* {isWorldcoinVerified && (
                   <div className="flex border-l  flex-row items-center gap-3 my-3 pl-2 ">
                     world ID verified{" "}
                     <img src="/verified.png" className="h-5 w-5" />
                   </div>
-                )}
+                )} */}
               </div>
               <button
                 disabled={!isConnected}
@@ -237,7 +252,8 @@ export default function Home() {
                         isWorldcoinVerified={isWorldcoinVerified}
                       />
                     )}
-                    {isWorldcoinVerified && (
+                    {/* {isWorldcoinVerified && ( */}
+                    {response && (
                       <button
                         className=" inline-flex h-10 w-full mt-10  animate-shimmer items-center justify-center rounded-md border border-white/[0.2] bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:ring-offset-slate-50"
                         onClick={() => {
@@ -247,6 +263,7 @@ export default function Home() {
                         Compile & Deploy
                       </button>
                     )}
+                    {/* )} */}
                   </>
                 )}
                 {isSuccess && (

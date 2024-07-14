@@ -25,8 +25,6 @@ export default function RootLayout({
         <Web3ModalProvider initialState={initialState}>
           {children}
         </Web3ModalProvider>
-        <script src="https://unpkg.com/prettier@latest"></script>
-        <script src="https://unpkg.com/prettier-plugin-solidity@latest"></script>
       </body>
     </html>
   );
