@@ -1,54 +1,61 @@
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.19;
 
-import {BaseHook} from "v4-periphery/BaseHook.sol";
-import {PoolKey} from "v4-core/src/types/PoolKey.sol";
-import {IPoolManager} from "v4-core/src/interfaces/IPoolManager.sol";
-import {PoolId, PoolIdLibrary} from "v4-core/src/types/PoolId.sol";
-import {Hooks} from "v4-core/src/libraries/Hooks.sol"; // Added import for missing Hooks library
+import "@openzeppelin/contracts/access/Ownable.sol";
+import {IPoolManager} from "@uniswap/v4-core/contracts/interfaces/IPoolManager.sol";
+import {Hooks} from "@uniswap/v4-core/contracts/libraries/Hooks.sol";
+import {BaseHook} from "../../BaseHook.sol";
+import {PoolKey} from "@uniswap/v4-core/contracts/types/PoolKey.sol";
 
-contract SwapCounterHook is BaseHook {
-    using PoolIdLibrary for PoolKey;
+contract WhitelistHook is BaseHook, Ownable {
 
-    mapping(PoolId => uint256) public swapCount;
+    mapping(address => bool) public whitelisted;
+
+    event AddedToWhitelist(address indexed addr);
+    event RemovedFromWhitelist(address indexed addr);
 
     constructor(IPoolManager _poolManager) BaseHook(_poolManager) {}
 
-    function getHookPermissions() public pure override returns (Hooks.Permissions memory) {
-        return Hooks.Permissions({
+    function addToWhitelist(address _address) external onlyOwner {
+        whitelisted[_address] = true;
+        emit AddedToWhitelist(_address);
+    }
+
+    function removeFromWhitelist(address _address) external onlyOwner {
+        whitelisted[_address] = false;
+        emit RemovedFromWhitelist(_address);
+    }
+
+    function beforeModifyPosition(address sender, PoolKey calldata, IPoolManager.ModifyPositionParams calldata)
+    external
+    override
+    poolManagerOnly
+    returns (bytes4)
+    {
+        require(whitelisted[sender], "WhitelistHook: Not whitelisted");
+        return WhitelistHook.beforeModifyPosition.selector;
+    }
+
+    function beforeSwap(address sender, PoolKey calldata, IPoolManager.SwapParams calldata)
+    external
+    override
+    poolManagerOnly
+    returns (bytes4)
+    {
+        require(whitelisted[sender], "WhitelistHook: Not whitelisted");
+        return WhitelistHook.beforeSwap.selector;
+    }
+
+    function getHooksCalls() public pure override returns (Hooks.Calls memory) {
+        return Hooks.Calls({
             beforeInitialize: false,
             afterInitialize: false,
-            beforeAddLiquidity: false,
-            afterAddLiquidity: false,
-            beforeRemoveLiquidity: false,
-            afterRemoveLiquidity: false,
+            beforeModifyPosition: true,
+            afterModifyPosition: false,
             beforeSwap: true,
-            afterSwap: true,
+            afterSwap: false,
             beforeDonate: false,
-            afterDonate: false,
-            beforeSwapReturnDelta: false,
-            afterSwapReturnDelta: false,
-            afterAddLiquidityReturnDelta: false,
-            afterRemoveLiquidityReturnDelta: false
+            afterDonate: false
         });
-    }
-
-    function beforeSwap(address, PoolKey calldata key, IPoolManager.SwapParams calldata, bytes calldata)
-        external
-        override
-        returns (bytes4)
-    {
-        swapCount[key.toId()]++;
-        return BaseHook.beforeSwap.selector;
-    }
-
-    function afterSwap(address, PoolKey calldata key, IPoolManager.SwapParams calldata, bytes calldata)
-        external
-        override
-        returns (bytes4)
-    {
-        // Incrementing the swap count in afterSwap as well to account for successful completion of swaps.
-        swapCount[key.toId()]++;
-        return BaseHook.afterSwap.selector;
     }
 }
