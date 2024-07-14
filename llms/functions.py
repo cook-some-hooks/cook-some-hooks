@@ -154,3 +154,118 @@ def markdown_to_text(text):
         # If the SPDX string is not found, strip whitespace and remove trailing backticks
         return text.strip().rstrip('`')
         
+
+def remove_last_brace(text):
+    """
+    Remove the last occurrence of '}' in the text.
+    
+    :param text: The input string
+    :return: A string with the last '}' removed
+    """
+    last_brace_index = text.rfind('}')
+    
+    if last_brace_index != -1:
+        # Return the string with the last '}' removed
+        return text[:last_brace_index] + text[last_brace_index + 1:]
+    else:
+        # Return the original text if no '}' is found
+        return text
+    
+
+def n_arguments_in_constructor(text):
+    """
+    Count the number of commas between the parentheses after the constructor in the given text.
+    
+    :param text: The input string containing the constructor
+    :return: The number of commas in the constructor's parameter list, or 0 if the list is empty or only contains spaces
+    """
+    # Regular expression to match the constructor parameters
+    pattern = r'constructor\s*\(([^)]*)\)'
+    match = re.search(pattern, text)
+    
+    if match:
+        # Extract the parameters string
+        params = match.group(1).strip()
+        # Check if the parameters string is empty or only contains spaces
+        if not params:
+            return 0
+        # Count the commas in the parameters string
+        comma_count = params.count(',')
+        return comma_count+1
+    else:
+        return 0
+    
+
+def multiply_string_with_commas(string, x):
+    """
+    Multiply a string x times with commas in between.
+    
+    :param string: The input string to be multiplied
+    :param x: The number of times to multiply the string
+    :return: A new string with the input string repeated x times, separated by commas
+    """
+    if x <= 0:
+        return ""
+    
+    return ','.join([string] * x)
+
+
+def remove_triple_backtick(text):
+    """
+    Remove all occurrences of triple backtick ``` from the text.
+    
+    :param text: The input text
+    :return: The text with all occurrences of triple backtick removed
+    """
+    return text.replace("```", "")
+
+
+import time
+from functools import wraps
+
+def rate_limit(min_interval):
+    """
+    Decorator to prevent a function from being called again before a specified interval has passed.
+    
+    :param min_interval: The minimum interval (in seconds) that must pass before the function can be called again
+    """
+    def decorator(func):
+        last_called = [0]  # Using a list to allow modification of the timestamp
+
+        @wraps(func)
+        def wrapped(*args, **kwargs):
+            current_time = time.time()
+            elapsed_time = current_time - last_called[0]
+
+            if elapsed_time < min_interval:
+                raise Exception(f"Function called too soon. Please wait {min_interval - elapsed_time:.2f} more seconds.")
+
+            result = func(*args, **kwargs)
+            last_called[0] = current_time
+            return result
+
+        return wrapped
+    return decorator
+
+
+def write_to_file(filename, text):
+    """
+    Write the given text to a file, overwriting any existing content.
+    
+    :param filename: The name of the file to write to
+    :param text: The text to write to the file
+    """
+    with open(filename, 'w') as file:
+        file.write(text)
+
+
+def read_from_file(filename):
+    """
+    Read the content of a file and return it.
+    
+    :param filename: The name of the file to read from
+    :return: The content of the file as a string
+    """
+    with open(filename, 'r') as file:
+        content = file.read()
+    return content
