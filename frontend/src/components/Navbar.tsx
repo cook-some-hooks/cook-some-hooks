@@ -41,15 +41,12 @@ export function NavbarComp() {
 
           <ul className="font-Jetmono font-medium flex flex-col p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-gray-50 md:flex-row md:space-x-8 rtl:space-x-reverse md:mt-0 md:border-0 md:bg-white dark:bg-gray-800 md:dark:bg-black dark:border-gray-700">
             <li>
-              {!isConnected && (
-                <button
-                  className="cursor-pointer inline-flex h-12 animate-shimmer items-center justify-center rounded-md border border-white/[0.2] bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:ring-offset-slate-50"
-                  onClick={() => navigate.push("/app")}
-                >
-                  Launch App
-                </button>
-              )}
-              {isConnected && <w3m-button />}
+              <button
+                className="cursor-pointer inline-flex h-12 animate-shimmer items-center justify-center rounded-md border border-white/[0.2] bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:ring-offset-slate-50"
+                onClick={() => navigate.push("/app")}
+              >
+                Launch App
+              </button>
             </li>
           </ul>
         </div>

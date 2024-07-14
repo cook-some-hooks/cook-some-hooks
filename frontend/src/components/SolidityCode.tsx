@@ -1,7 +1,19 @@
 import React from "react";
+import TypewriterEffect from "./ui/typewriter-effect";
 
 const SolidityCode = ({ code }: any) => {
-  return <pre style={styles.pre}>{code}</pre>;
+  // const words = code
+  //   .split(/\s+/)
+  //   .filter((word: any) => word.length > 0)
+  //   .map((word: any) => ({ text: word }));
+
+  return (
+    <pre style={styles.pre} className="h-[75vh]">
+      {/* {code} */}
+      <TypewriterEffect text={code} speed={30} />
+      {/* {code} */}
+    </pre>
+  );
 };
 
 const styles = {

@@ -11,19 +11,27 @@ export async function GET(req: Request) {
 }
 export async function POST(req: Request) {
   const json = await req.json();
-  const { prompt } = json;
+  const { prompt, address } = json;
 
-  const anthropic = new Anthropic({
-    apiKey: process.env.NEXT_CLAUDE_API_KEY,
+  // const anthropic = new Anthropic({
+  //   apiKey: process.env.NEXT_CLAUDE_API_KEY,
+  // });
+
+  // const msg: any = await anthropic.messages.create({
+  //   model: "claude-3-5-sonnet-20240620",
+  //   max_tokens: 1024,
+  //   messages: [{ role: "user", content: prompt }],
+  // });
+
+  const res = await fetch("https://f295-213-214-42-42.ngrok-free.app/invoke", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ prompt, address }),
   });
+  let data = await res.json();
 
-  const msg: any = await anthropic.messages.create({
-    model: "claude-3-5-sonnet-20240620",
-    max_tokens: 1024,
-    messages: [{ role: "user", content: prompt }],
-  });
-
-  return Response.json({ res: extractCode(msg.content[0].text) });
+  return Response.json({ res: data });
+  //  return Response.json({ res: extractCode(msg.content[0].text) });
 }
 function extractCode(text: string) {
   const codeBlocks = [];

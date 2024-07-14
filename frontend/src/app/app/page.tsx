@@ -1,4 +1,5 @@
 "use client";
+import datajson from "./data.json";
 
 import {
   useAccount,
@@ -35,18 +36,23 @@ interface Token {
 }
 
 import SolidityCode from "@/components/SolidityCode";
+import { Loader } from "@/components/Loader";
 
 export default function Home() {
   const { address, isConnected } = useAccount();
 
   const { disconnect } = useDisconnect();
-  console.log(address);
+  // console.log(address);
 
   const [isTransitioned, setIsTransitioned] = useState(false);
+  const [loader, setloader] = useState(false);
+  const [loaderText, setloaderText] = useState("");
   const [selectedTokens, setSelectedTokens] = useState<Token[]>([]);
 
   const handleButtonClick = () => {
     setIsTransitioned(true);
+    setloader(true);
+    setloaderText("AI is cooking");
   };
 
   const handleTokenSelect = (tokens: Token[]) => {
@@ -54,41 +60,9 @@ export default function Home() {
   };
 
   const [prompt, setPrompt] = useState("");
+
+  const [generatedData, setGenereatedData] = useState<any>({});
   const [response, setResponse] = useState("");
-
-  function formatSolidityCode(code: any) {
-    // Add line breaks after certain keywords and symbols
-    code = code.replace(/(\{|\}|;)/g, "$1\n");
-    code = code.replace(
-      /(function|contract|modifier|event|struct|enum|library|interface|if|else|for|while|return|mapping|emit|require|assert|revert)/g,
-      "\n$1"
-    );
-
-    // Remove excess white spaces and new lines
-    code = code.replace(/\n\s*\n/g, "\n");
-    code = code.replace(/\s*\n\s*/g, "\n");
-
-    // Indentation logic
-    let indent = 0;
-    let formattedCode = "";
-    const lines = code.split("\n");
-
-    lines.forEach((line: any) => {
-      line = line.trim();
-      if (line) {
-        if (line.includes("}")) {
-          indent -= 1;
-        }
-        formattedCode += "    ".repeat(indent) + line + "\n";
-        if (line.includes("{")) {
-          indent += 1;
-        }
-      }
-    });
-
-    return formattedCode;
-  }
-
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     // const res = await fetch("/api/chat", {
@@ -101,12 +75,18 @@ export default function Home() {
     const res = await fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt }),
+      body: JSON.stringify({ prompt, address }),
     });
 
     const data = await res.json();
 
-    setResponse(data.res);
+    setGenereatedData(data.res);
+    setResponse(data.res.solidity_code);
+    // setResponse(datajson.res.solidity_code);
+    // setGenereatedData(datajson.res);
+
+    setloader(false);
+    setloaderText("");
   };
 
   const {
@@ -142,10 +122,12 @@ export default function Home() {
     }
   };
   const handleDeploy = async () => {
-    const files = await compileContract();
+    // const files = await compileContract();
     // console.log(files);
-    const abi = files.files.abi;
-    const bytecode = files.files.bytecode as `0x${string}`;
+    const abi = generatedData.abi;
+    const bytecode = generatedData.bytecode as `0x${string}`;
+    // const abi = files.files.abi;
+    // const bytecode = files.files.bytecode as `0x${string}`;
 
     try {
       await deployContract({
@@ -197,72 +179,87 @@ export default function Home() {
                 />
               </LabelInputContainer>
               <button
-                className="bg-gradient-to-br relative group/btn from-black dark:from-zinc-900 dark:to-zinc-900 to-neutral-600 block dark:bg-zinc-800 w-full text-white rounded-md h-10 font-medium shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:shadow-[0px_1px_0px_0px_var(--zinc-800)_inset,0px_-1px_0px_0px_var(--zinc-800)_inset]"
+                disabled={!isConnected}
+                className={`cursor-pointer bg-gradient-to-br relative group/btn from-black dark:from-zinc-900 dark:to-zinc-900 to-neutral-600 block dark:bg-zinc-800 w-full text-white rounded-md h-10 font-medium shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:shadow-[0px_1px_0px_0px_var(--zinc-800)_inset,0px_-1px_0px_0px_var(--zinc-800)_inset] ${isConnected ? "" : " opacity-50 cursor-not-allowed"}`}
                 type="submit"
                 onClick={handleButtonClick}
               >
-                Generate with Claude.ai &rarr;
+                {!loader && <>Generate with AI &rarr;</>}
+                {loader && (
+                  <>
+                    <Loader text={loaderText} />
+                  </>
+                )}
                 <BottomGradient />
               </button>
             </form>
           </div>
           {isTransitioned && (
-            <div className="h-[80vh] w-[60%] flex flex-col  overflow-scroll rounded-md border border-white/[0.2]  mt-10 flex items-center justify-center bg-gray-200 dark:bg-black transition-opacity duration-500">
+            <div className="h-[80vh] w-[60%]  flex-col  overflow-scroll rounded-md border border-white/[0.2]  mt-10 flex items-center justify-center bg-gray-200 dark:bg-black transition-opacity duration-500">
               <div className="w-full h-full items-end flex flex-col">
                 {/* {response && response} */}
-                <button
-                  className=" inline-flex h-12 animate-shimmer items-center justify-center rounded-md border border-white/[0.2] bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:ring-offset-slate-50"
-                  onClick={() => {
-                    handleDeploy();
-                  }}
+                <div
+                  className={
+                    deployHash
+                      ? "flex flex-row justify-evenly w-full p-1 items-center"
+                      : " flex justify-end w-full p-1 items-end"
+                  }
                 >
-                  Compile & Deploy
-                </button>
-                <div className={"w-full"}>
+                  {!deployHash && (
+                    <button
+                      className=" inline-flex h-10  animate-shimmer items-center justify-center rounded-md border border-white/[0.2] bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:ring-offset-slate-50"
+                      onClick={() => {
+                        handleDeploy();
+                      }}
+                    >
+                      Compile & Deploy
+                    </button>
+                  )}
+                  {isSuccess && (
+                    <div className="mt-4 text-center">
+                      {/* <p className="mt-2">Transaction Hash: {deployHash}</p> */}
+                      {isReceiptSuccess && (
+                        <>
+                          <p className="mt-2">
+                            Status:{" "}
+                            {txReceipt?.status === "success"
+                              ? "Success"
+                              : "Failed"}
+                          </p>
+                          {txReceipt?.status === "success" && (
+                            <p className="mt-2">
+                              Contract Address: {txReceipt.contractAddress}
+                            </p>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  )}
+                  {deployHash && (
+                    <div className="mt-4 ">
+                      <a
+                        href={`https://sepolia.etherscan.io/tx/${deployHash}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-500 hover:text-blue-700"
+                      >
+                        View on Etherscan
+                      </a>
+                    </div>
+                  )}
+                  {isError && (
+                    <div className="mt-4 text-center text-red-500">
+                      <h3 className="text-xl font-bold">
+                        Error Deploying Contract
+                      </h3>
+                      <p className="mt-2">{error?.message}</p>
+                    </div>
+                  )}
+                </div>
+                <div className={"w-full h-[10vh]"}>
                   <SolidityCode code={response} />
                 </div>
               </div>
-              {isSuccess && (
-                <div className="mt-4 text-center">
-                  <h3 className="text-xl font-bold">Transaction Submitted</h3>
-                  <p className="mt-2">Transaction Hash: {deployHash}</p>
-                  {isReceiptSuccess && (
-                    <>
-                      <p className="mt-2">
-                        Status:{" "}
-                        {txReceipt?.status === "success" ? "Success" : "Failed"}
-                      </p>
-                      {txReceipt?.status === "success" && (
-                        <p className="mt-2">
-                          Contract Address: {txReceipt.contractAddress}
-                        </p>
-                      )}
-                    </>
-                  )}
-                </div>
-              )}
-
-              {isError && (
-                <div className="mt-4 text-center text-red-500">
-                  <h3 className="text-xl font-bold">
-                    Error Deploying Contract
-                  </h3>
-                  <p className="mt-2">{error?.message}</p>
-                </div>
-              )}
-
-              {deployHash && (
-                <div className="mt-4 text-center">
-                  <a
-                    href={`https://sepolia.etherscan.io/tx/${deployHash}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-500 hover:text-blue-700"
-                  >
-                    View on Etherscan
-                  </a>
-                </div>
-              )}
             </div>
           )}
         </div>

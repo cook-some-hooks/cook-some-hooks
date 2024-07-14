@@ -11,6 +11,8 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.24.3",
     "@chakra-ui/react": "^2.8.2",
+    "@ethersproject/bytes": "^5.7.0",
+    "@ethersproject/keccak256": "^5.7.0",
     "@radix-ui/react-label": "^2.1.0",
     "@solidity-parser/parser": "^0.18.0",
     "@tabler/icons-react": "^3.10.0",
@@ -32,6 +34,7 @@
     "react-syntax-highlighter": "^15.5.0",
     "solc": "^0.8.26",
     "tailwind-merge": "^2.4.0",
+    "typewriter-effect": "^2.21.0",
     "wagmi": "^2.10.10",
     "web3": "^4.11.0"
   },
