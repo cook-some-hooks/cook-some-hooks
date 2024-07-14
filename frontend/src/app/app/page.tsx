@@ -67,30 +67,60 @@ export default function Home() {
 
   const [generatedData, setGenereatedData] = useState<any>({});
   const [response, setResponse] = useState("");
+  // const handleSubmit = async (e: any) => {
+  //   e.preventDefault();
+  //   // const res = await fetch("/api/chat", {
+  //   //   method: "GET",
+  //   //   headers: { "Content-Type": "application/json" },
+  //   // });
+
+  //   // const data = await res.json();
+
+  //   const res = await fetch("/api/chat", {
+  //     method: "POST",
+  //     headers: { "Content-Type": "application/json" },
+  //     body: JSON.stringify({ prompt, address }),
+  //   });
+
+  //   const data = await res.json();
+
+  //   setGenereatedData(data.res);
+  //   setResponse(data.res.solidity_code);
+  //   // setResponse(datajson.res.solidity_code);
+  //   // setGenereatedData(datajson.res);
+
+  //   setloader(false);
+  //   setloaderText("");
+  // };
+  const [onceCalled, setOnceCalled] = useState(false);
   const handleSubmit = async (e: any) => {
     e.preventDefault();
-    // const res = await fetch("/api/chat", {
-    //   method: "GET",
-    //   headers: { "Content-Type": "application/json" },
-    // });
 
-    // const data = await res.json();
+    // Set loading state if applicable
+    setloader(true);
+    setloaderText("Loading...");
 
-    const res = await fetch("/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt, address }),
-    });
+    try {
+      if (!onceCalled) {
+        setOnceCalled(true);
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt, address }),
+        });
 
-    const data = await res.json();
+        const data = await res.json();
 
-    setGenereatedData(data.res);
-    setResponse(data.res.solidity_code);
-    // setResponse(datajson.res.solidity_code);
-    // setGenereatedData(datajson.res);
-
-    setloader(false);
-    setloaderText("");
+        setGenereatedData(data.res);
+        setResponse(data.res.solidity_code);
+      }
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      // Handle error state if applicable
+    } finally {
+      setloader(false);
+      setloaderText("");
+    }
   };
 
   const {
@@ -127,15 +157,21 @@ export default function Home() {
   };
 
   const handleDeploy = async () => {
-    if (!isWorldcoinVerified) {
-      alert("Please verify with Worldcoin before deploying.");
-      return;
-    }
+    // if (!isWorldcoinVerified) {
+    //   alert("Please verify with Worldcoin before deploying.");
+    //   return;
+    // }
 
     // const files = await compileContract();
     // console.log(files);
     const abi = generatedData.abi;
     const bytecode = generatedData.bytecode as `0x${string}`;
+
+    const noOfargs = generatedData.n_constructor;
+    let args = [];
+    for (let i = 0; i < noOfargs; i++) {
+      args.push(address);
+    }
     // const abi = files.files.abi;
     // const bytecode = files.files.bytecode as `0x${string}`;
 
@@ -147,18 +183,19 @@ export default function Home() {
 
         abi: abi,
         bytecode: bytecode,
-        args: [address, address],
+        args: args,
       });
     } catch (err) {
       console.error("Deployment error:", err);
     }
   };
-  async function verifyBlockscout(address: any) {
-    const responseJson = await fetch("http://localhost:3001/compile", {
+  async function verifyBlockscout(contractaddress: any) {
+    const responseJson = await fetch("/api/verify_blockscout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        contractAddress: address,
+        contractAddress: contractaddress,
+        argsAddress: address,
       }),
     });
   }
@@ -226,7 +263,9 @@ export default function Home() {
                 disabled={!isConnected}
                 className={`cursor-pointer bg-gradient-to-br relative group/btn from-black dark:from-zinc-900 dark:to-zinc-900 to-neutral-600 block dark:bg-zinc-800 w-full text-white rounded-md h-10 font-medium shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:shadow-[0px_1px_0px_0px_var(--zinc-800)_inset,0px_-1px_0px_0px_var(--zinc-800)_inset] ${isConnected ? "" : " opacity-50 cursor-not-allowed"}`}
                 type="submit"
-                onClick={handleButtonClick}
+                onClick={() => {
+                  handleButtonClick();
+                }}
               >
                 {!loader && <>Generate with AI &rarr;</>}
                 {loader && (
@@ -246,12 +285,12 @@ export default function Home() {
               >
                 {!deployHash && (
                   <>
-                    {response && (
+                    {/* {response && (
                       <Verify
                         setIsWorldcoinVerified={setIsWorldcoinVerified}
                         isWorldcoinVerified={isWorldcoinVerified}
                       />
-                    )}
+                    )} */}
                     {/* {isWorldcoinVerified && ( */}
                     {response && (
                       <button
@@ -278,23 +317,35 @@ export default function Home() {
                             : "Failed"}
                         </p>
                         {txReceipt?.status === "success" && (
-                          <p className="mt-2">
-                            Contract Address: {txReceipt.contractAddress}
-                          </p>
+                          <>
+                            <p className="mt-2">
+                              Contract Address: {txReceipt.contractAddress}
+                            </p>
+                            <div className="mt-4 ">
+                              <a
+                                href={`https://eth-sepolia.blockscout.com/address/${txReceipt.contractAddress}?tab=contract`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-500 hover:text-blue-700"
+                              >
+                                View on Blockscout
+                              </a>
+                            </div>
+                          </>
                         )}
                       </>
                     )}
                   </div>
                 )}
-                {deployHash && (
+                {txReceipt?.status === "success" && (
                   <div className="mt-4 ">
                     <a
-                      href={`https://sepolia.etherscan.io/tx/${deployHash}`}
+                      href={`https://eth-sepolia.blockscout.com/address/${txReceipt.contractAddress}?tab=txs`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-500 hover:text-blue-700"
                     >
-                      View on Etherscan
+                      View on Blockscout
                     </a>
                   </div>
                 )}
