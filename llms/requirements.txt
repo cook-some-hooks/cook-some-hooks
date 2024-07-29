@@ -1,0 +1,6 @@
+anthropic
+python-dotenv
+openai
+tiktoken
+web3
+flask
