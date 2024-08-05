@@ -3,6 +3,8 @@ import os
 import random
 import subprocess
 import re
+import time
+from functools import wraps
 
 from anthropic import Anthropic
 from dotenv import load_dotenv, find_dotenv
@@ -15,8 +17,7 @@ load_dotenv(find_dotenv())
 OpenAI_client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 Anthropic_client = Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
 
-
-def extract_contract_name(text):
+def extract_contract_name(text) -> str | None:
     """
     Extracts the contract code from a given string that matches the pattern 'contract xxxx is'.
 
@@ -38,7 +39,7 @@ def extract_contract_name(text):
     else:
         return None
     
-def get_n_tokens(text):
+def get_n_tokens(text) -> int:
     enc = tiktoken.encoding_for_model("gpt-4o")
     return len(enc.encode(text))
 
@@ -131,7 +132,6 @@ def save_to_sol(content, folder_path, file_name):
 
     #print(f"File {file_path} has been created and saved successfully.")
 
-
 def compile_contract(file_to_build):
 
     command = f"forge build src/generated/{file_to_build}"
@@ -143,6 +143,16 @@ def compile_contract(file_to_build):
     # Return stdout, stderr, and returncode
     return result.stdout, result.stderr, result.returncode
 
+def compile_test_contract(file_to_build):
+
+    command = f"forge test src/generated/{file_to_build}"
+    working_directory = "../foundry_hook_playground"
+
+    # Run the command in the specified directory
+    result = subprocess.run(command, shell=True, capture_output=True, text=True, cwd=working_directory)
+
+    # Return stdout, stderr, and returncode
+    return result.stdout, result.stderr, result.returncode
 
 def markdown_to_text(text):
     spdx_str = "// SPDX-License-Identifier"
@@ -154,7 +164,6 @@ def markdown_to_text(text):
         # If the SPDX string is not found, strip whitespace and remove trailing backticks
         return text.strip().rstrip('`')
         
-
 def remove_last_brace(text):
     """
     Remove the last occurrence of '}' in the text.
@@ -171,7 +180,6 @@ def remove_last_brace(text):
         # Return the original text if no '}' is found
         return text
     
-
 def n_arguments_in_constructor(text):
     """
     Count the number of commas between the parentheses after the constructor in the given text.
@@ -195,7 +203,6 @@ def n_arguments_in_constructor(text):
     else:
         return 0
     
-
 def multiply_string_with_commas(string, x):
     """
     Multiply a string x times with commas in between.
@@ -209,7 +216,6 @@ def multiply_string_with_commas(string, x):
     
     return ','.join([string] * x)
 
-
 def remove_triple_backtick(text):
     """
     Remove all occurrences of triple backtick ``` from the text.
@@ -218,10 +224,6 @@ def remove_triple_backtick(text):
     :return: The text with all occurrences of triple backtick removed
     """
     return text.replace("```", "")
-
-
-import time
-from functools import wraps
 
 def rate_limit(min_interval):
     """
@@ -247,7 +249,6 @@ def rate_limit(min_interval):
         return wrapped
     return decorator
 
-
 def write_to_file(filename, text):
     """
     Write the given text to a file, overwriting any existing content.
@@ -257,7 +258,6 @@ def write_to_file(filename, text):
     """
     with open(filename, 'w') as file:
         file.write(text)
-
 
 def read_from_file(filename):
     """
