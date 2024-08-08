@@ -123,7 +123,7 @@ torch==2.1.2
 torchvision==0.16.2
 tqdm==4.65.0
 traitlets==5.14.3
-typing_extensions==4.12.2
+typing-extensions>=4.6.0,<5
 wcwidth==0.2.13
 Werkzeug==3.0.2
 wrapt==1.16.0
