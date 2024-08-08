@@ -23,7 +23,7 @@ export async function POST(req: Request) {
   //   messages: [{ role: "user", content: prompt }],
   // });
   console.log(JSON.stringify({ prompt: prompt, deployer_address: address }));
-  const res = await fetch("https://a5d6-213-214-42-42.ngrok-free.app/invoke", {
+  const res = await fetch("https://cook-some-hooks.onrender.com/invoke", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ prompt: prompt, deployer_address: address }),
