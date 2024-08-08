@@ -9,18 +9,12 @@ astunparse==1.6.3
 basicsr==1.4.2
 beautifulsoup4==4.12.3
 blinker==1.8.2
-brotlipy @ file:///Users/runner/miniforge3/conda-bld/brotlipy_1666764759924/work
 cachetools==5.3.3
 certifi==2022.12.7
-cffi @ file:///Users/runner/miniforge3/conda-bld/cffi_1671179893800/work
-charset-normalizer @ file:///home/conda/feedstock_root/build_artifacts/charset-normalizer_1661170624537/work
 click==8.1.7
 coloredlogs==15.0.1
 conda==22.9.0
-conda-package-handling @ file:///home/conda/feedstock_root/build_artifacts/conda-package-handling_1669907009957/work
-conda_package_streaming @ file:///home/conda/feedstock_root/build_artifacts/conda-package-streaming_1669733752472/work
 contourpy==1.2.1
-cryptography @ file:///Users/runner/miniforge3/conda-bld/cryptography_1669593074946/work
 customtkinter==5.2.0
 cycler==0.12.1
 Cython==3.0.10
@@ -51,7 +45,6 @@ httpcore==1.0.5
 httpx==0.27.0
 huggingface-hub==0.24.5
 humanfriendly==10.0
-idna @ file:///home/conda/feedstock_root/build_artifacts/idna_1663625384323/work
 imageio==2.34.0
 importlib_metadata==7.1.0
 insightface==0.7.3
@@ -96,23 +89,17 @@ ptyprocess==0.7.0
 pure_eval==0.2.3
 pyasn1==0.6.0
 pyasn1_modules==0.4.0
-pycosat @ file:///Users/runner/miniforge3/conda-bld/pycosat_1666836623787/work
-pycparser @ file:///home/conda/feedstock_root/build_artifacts/pycparser_1636257122734/work
 pydantic==2.8.2
 pydantic_core==2.20.1
 Pygments==2.18.0
-pyOpenSSL @ file:///home/conda/feedstock_root/build_artifacts/pyopenssl_1665350324128/work
 pyparsing==3.1.2
-PySocks @ file:///home/conda/feedstock_root/build_artifacts/pysocks_1661604839144/work
 python-dateutil==2.9.0.post0
 python-dotenv==1.0.1
 PyYAML==6.0.1
 qudida==0.0.4
 regex==2024.7.24
-requests @ file:///home/conda/feedstock_root/build_artifacts/requests_1661872987712/work
 requests-oauthlib==2.0.0
 rsa==4.9
-ruamel-yaml-conda @ file:///Users/runner/miniforge3/conda-bld/ruamel_yaml_1666819987451/work
 scikit-image==0.22.0
 scikit-learn==1.4.1.post1
 scipy==1.13.0
@@ -135,13 +122,11 @@ tk==0.1.0
 tkinterdnd2-universal==1.7.3
 tokenizers==0.19.1
 tomli==2.0.1
-toolz @ file:///home/conda/feedstock_root/build_artifacts/toolz_1657485559105/work
 torch==2.1.2
 torchvision==0.16.2
 tqdm==4.65.0
 traitlets==5.14.3
 typing_extensions==4.12.2
-urllib3 @ file:///home/conda/feedstock_root/build_artifacts/urllib3_1669259737463/work
 wcwidth==0.2.13
 Werkzeug==3.0.2
 wrapt==1.16.0
