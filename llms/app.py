@@ -57,7 +57,7 @@ rag_instructions = f"""
 app = Flask(__name__)
 
 def rag(prompt):
-    rag_answer, _ = get_claude_answer(rag_instructions, [], prompt, json_output=True)
+    rag_answer, _ = get_claude_answer(rag_instructions, [], prompt)
     # rag_answer, _ = get_openai_answer(rag_instructions, [], prompt, json_output=True)
     return rag_answer
 
