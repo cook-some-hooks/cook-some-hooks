@@ -69,7 +69,6 @@ numba==0.59.1
 numpy==1.24.3
 oauthlib==3.2.2
 onnx==1.14.0
-onnxruntime-silicon==1.13.1
 openai==1.40.1
 opencv-python==4.8.0.74
 opencv-python-headless==4.9.0.80
