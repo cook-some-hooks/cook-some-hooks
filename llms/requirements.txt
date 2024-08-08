@@ -4,3 +4,5 @@ openai==1.40.1
 anthropic==0.32.0
 tiktoken==0.4.0
 ipython==8.26.0
+web3==6.20.1
+websockets==12.0
