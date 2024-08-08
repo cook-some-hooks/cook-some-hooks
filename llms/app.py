@@ -105,8 +105,8 @@ def invoke():
 
     while (attempt_counter<5) and (returncode!=0):
         file_name = f"generated_hook_{attempt_counter}.sol"
-        #answer, conversation_history = get_claude_answer(final_instructions, conversation_history, prompt)
-        answer, conversation_history = get_openai_answer(final_instructions, conversation_history, prompt)
+        answer, conversation_history = get_claude_answer(final_instructions, conversation_history, prompt)
+        # answer, conversation_history = get_openai_answer(final_instructions, conversation_history, prompt)
 
         # BYPASS THE CHECK FOR HOOK FLAGS AT DEPLOY TIME
         answer=remove_last_brace(answer)
