@@ -339,18 +339,7 @@ export default function Home() {
                     )}
                   </div>
                 )}
-                {txReceipt?.status === "success" && (
-                  <div className="mt-4 ">
-                    <a
-                      href={`https://sepolia.etherscan.io/tx/${deployHash}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-500 hover:text-blue-700"
-                    >
-                      View on Blockscout
-                    </a>
-                  </div>
-                )}
+
                 {isError && (
                   <div className="mt-4 text-center text-red-500">
                     <h3 className="text-xl font-bold">
