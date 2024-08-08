@@ -63,6 +63,9 @@ def rag(prompt):
 @app.route('/hello', methods=['GET'])
 def hello():
     return "hi"
+@app.route('/', methods=['GET'])
+def default():
+    return "hi"
 
 @app.route('/invoke', methods=['POST'])
 @rate_limit(10)
@@ -163,4 +166,4 @@ def verify():
 
 
 if __name__ == '__main__':
-    app.run(port=os.environ.get("PORT"), debug=True)
+    app.run(host="0.0.0.0",port=os.environ.get("PORT"), debug=True)
