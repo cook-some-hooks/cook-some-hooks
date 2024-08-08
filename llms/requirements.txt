@@ -13,7 +13,6 @@ cachetools==5.3.3
 certifi==2022.12.7
 click==8.1.7
 coloredlogs==15.0.1
-conda==22.9.0
 contourpy==1.2.1
 customtkinter==5.2.0
 cycler==0.12.1
