@@ -135,7 +135,7 @@ def save_to_sol(content, folder_path, file_name):
 def compile_contract(file_to_build):
 
     command = f"forge build src/generated/{file_to_build}"
-    working_directory = "/Users/miquel/Desktop/git/miqlar/cook-some-hooks/foundry_hook_playground"
+    working_directory = "../foundry_hook_playground"
 
     # Run the command in the specified directory
     result = subprocess.run(command, shell=True, capture_output=True, text=True, cwd=working_directory)

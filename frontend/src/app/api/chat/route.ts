@@ -23,7 +23,7 @@ export async function POST(req: Request) {
   //   messages: [{ role: "user", content: prompt }],
   // });
   console.log(JSON.stringify({ prompt: prompt, deployer_address: address }));
-  const res = await fetch("https://cook-some-hooks.onrender.com/invoke", {
+  const res = await fetch("http://127.0.0.1:8000/invoke", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ prompt: prompt, deployer_address: address }),

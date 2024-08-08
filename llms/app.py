@@ -158,7 +158,7 @@ def verify():
     constructor_address = request.get_json().get('constructor_address')
     print(f"!! VERIFY -- {contract_address}, {constructor_address}")
     command = f"forge verify-contract {contract_address} --verifier blockscout {last_contract_deployed} --constructor-args {multiply_string_with_commas(constructor_address, last_n_arguments_in_constructor)} --chain sepolia --verifier-url https://eth-sepolia.blockscout.com/api"
-    working_directory = "/Users/miquel/Desktop/git/miqlar/cook-some-hooks/foundry_hook_playground"
+    working_directory = "../foundry_hook_playground"
     print(command)
     # Run the command in the specified directory
     result = subprocess.run(command, shell=True, capture_output=True, text=True, cwd=working_directory)
