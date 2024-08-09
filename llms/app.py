@@ -111,7 +111,7 @@ def invoke():
         }"""
         answer = markdown_to_text(answer)
         answer = remove_triple_backtick(answer)
-        save_to_sol(answer, "../foundry_hook_playground/src/generated/", file_name)
+        save_to_sol(answer, "../foundry_hook_playground/src/generated/src/", file_name)
         _, stderr, returncode = compile_contract(file_name)
         prompt = "I get this error when compiling the contract: \n\n"+stderr+"\n\nOUTPUT: Only the fixed solidity code"
         if (returncode)!=0:

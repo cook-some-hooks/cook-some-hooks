@@ -294,8 +294,5 @@ You are going to receive examples of hook contracts, with a SUMMARY and the CODE
 
 ------------------
 
-Here are some examples of hooks:
-
-{hooks}
 
 

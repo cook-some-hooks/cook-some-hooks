@@ -1,0 +1,46 @@
+Your task is to generate the unit test of a Hook contract. 
+
+In other to call the hook, you will need to deploy the contract and then call the function you want. 
+
+Here is the import command and the setUp function: 
+
+import {GeneratedContract} from "../generated/GeneratedContract.sol";
+
+    function setUp() public {
+        // creates the pool manager, utility routers, and test tokens
+        Deployers.deployFreshManagerAndRouters();
+        Deployers.deployMintAndApprove2Currencies();
+
+        // Deploy the hook to an address with the correct flags
+        address flags = address(
+            uint160(
+                Hooks.BEFORE_SWAP_FLAG |
+                    Hooks.AFTER_SWAP_FLAG |
+                    Hooks.BEFORE_ADD_LIQUIDITY_FLAG |
+                    Hooks.BEFORE_REMOVE_LIQUIDITY_FLAG
+            ) ^ (0x4444 << 144) // Namespace the hook to avoid collisions
+        );
+        deployCodeTo("Counter.sol:Counter", abi.encode(manager), flags);
+        hook = Counter(flags);
+
+        // Create the pool
+        key = PoolKey(currency0, currency1, 3000, 60, IHooks(hook));
+        poolId = key.toId();
+        manager.initialize(key, SQRT_PRICE_1_1, ZERO_BYTES);
+
+        // Provide full-range liquidity to the pool
+        modifyLiquidityRouter.modifyLiquidity(
+            key,
+            IPoolManager.ModifyLiquidityParams(
+                TickMath.minUsableTick(60),
+                TickMath.maxUsableTick(60),
+                10_000 ether,
+                0
+            ),
+            ZERO_BYTES
+        );
+    }
+
+
+You allready have received some examples. 
+

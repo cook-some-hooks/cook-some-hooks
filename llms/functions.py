@@ -64,7 +64,6 @@ def get_openai_answer(instructions, conversation_history, new_prompt, json_outpu
     
     return completion.choices[0].message.content, conversation_history
 
-
 def get_claude_answer(instructions, conversation_history, new_prompt):
     conversation_history.append({"role": "user", "content": new_prompt})
         
@@ -80,7 +79,6 @@ def get_claude_answer(instructions, conversation_history, new_prompt):
     conversation_history.append({"role": "assistant", "content": message.content[0].text})
     
     return message.content[0].text, conversation_history
-
 
 def read_file(file_path):
     try:
@@ -143,16 +141,16 @@ def compile_contract(file_to_build):
     # Return stdout, stderr, and returncode
     return result.stdout, result.stderr, result.returncode
 
-def compile_test_contract(file_to_build):
-
-    command = f"forge test src/generated/{file_to_build}"
-    working_directory = "../foundry_hook_playground"
+def compile_test_contract():
+    command = f"forge test"
+    working_directory = "../foundry_hook_playground/src/test"
 
     # Run the command in the specified directory
     result = subprocess.run(command, shell=True, capture_output=True, text=True, cwd=working_directory)
 
     # Return stdout, stderr, and returncode
     return result.stdout, result.stderr, result.returncode
+
 
 def markdown_to_text(text):
     spdx_str = "// SPDX-License-Identifier"
