@@ -134,7 +134,7 @@ def save_to_sol(content, folder_path, file_name):
 
 def compile_contract(file_to_build):
 
-    command = f"forge build src/generated/{file_to_build}"
+    command = f"forge build --contracts src/generated/{file_to_build}"
     working_directory = "../foundry_hook_playground"
 
     # Run the command in the specified directory
