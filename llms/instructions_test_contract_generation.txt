@@ -2,9 +2,23 @@ Your task is to generate the unit test of a Hook contract.
 
 In other to call the hook, you will need to deploy the contract and then call the function you want. 
 
-Here is the import command and the setUp function: 
+Here is the starting code:
 
 import {GeneratedContract} from "../generated/GeneratedContract.sol";
+import "forge-std/Test.sol";
+import {GeneratedContract} from "../generated/GeneratedContract.sol";
+import {IHooks} from "v4-core/src/interfaces/IHooks.sol";
+import {Hooks} from "v4-core/src/libraries/Hooks.sol";
+import {IPoolManager} from "v4-core/src/interfaces/IPoolManager.sol";
+import {PoolKey} from "v4-core/src/types/PoolKey.sol";
+import {PoolId, PoolIdLibrary} from "v4-core/src/types/PoolId.sol";
+import {Deployers} from "v4-core/test/utils/Deployers.sol";
+
+contract GeneratedContractTest is Test, Deployers {
+    using PoolIdLibrary for PoolKey;
+
+    GeneratedContract hook;
+    PoolId poolId;
 
     function setUp() public {
         // creates the pool manager, utility routers, and test tokens
