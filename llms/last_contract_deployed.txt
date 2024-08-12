@@ -1,1 +1,1 @@
-RewardMintHook
+MintRewardHook

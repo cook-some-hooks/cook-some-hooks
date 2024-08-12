@@ -1,60 +1,82 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
-pragma solidity ^0.8.24;
 
 import {BaseHook} from "v4-periphery/BaseHook.sol";
 import {Hooks} from "v4-core/src/libraries/Hooks.sol";
-import {Hooks} from "v4-core/src/libraries/Hooks.sol";
 import {IPoolManager} from "v4-core/src/interfaces/IPoolManager.sol";
 import {PoolKey} from "v4-core/src/types/PoolKey.sol";
+import {PoolId, PoolIdLibrary} from "v4-core/src/types/PoolId.sol";
 import {BalanceDelta} from "v4-core/src/types/BalanceDelta.sol";
-import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {BeforeSwapDelta, BeforeSwapDeltaLibrary} from "v4-core/src/types/BeforeSwapDelta.sol";
 
-contract RewardMintHook is BaseHook, ERC20 {
-    uint256 public constant REWARD_AMOUNT = 1000 * 10 ** 18;
+contract CounterHook is BaseHook {
+    using PoolIdLibrary for PoolKey;
 
-    constructor(
-        IPoolManager _poolManager,
-        string memory _name,
-        string memory _symbol
-    ) BaseHook(_poolManager) ERC20(_name, _symbol) {}
+    // Counters for each action, mapped by PoolId
+    mapping(PoolId => uint256) public beforeSwapCount;
+    mapping(PoolId => uint256) public afterSwapCount;
+    mapping(PoolId => uint256) public beforeAddLiquidityCount;
+    mapping(PoolId => uint256) public afterAddLiquidityCount;
 
-    function getHookPermissions()
-        public
-        pure
+    constructor(IPoolManager _poolManager) BaseHook(_poolManager) {}
+
+    function getHookPermissions() public pure override returns (Hooks.Permissions memory) {
+        return Hooks.Permissions({
+            beforeInitialize: false,
+            afterInitialize: false,
+            beforeAddLiquidity: true,
+            afterAddLiquidity: true,
+            beforeRemoveLiquidity: false,
+            afterRemoveLiquidity: false,
+            beforeSwap: true,
+            afterSwap: true,
+            beforeDonate: false,
+            afterDonate: false,
+            beforeSwapReturnDelta: false,
+            afterSwapReturnDelta: false,
+            afterAddLiquidityReturnDelta: false,
+            afterRemoveLiquidityReturnDelta: false
+        });
+    }
+
+    function beforeSwap(address, PoolKey calldata key, IPoolManager.SwapParams calldata, bytes calldata)
+        external
         override
-        returns (Hooks.Permissions memory)
+        returns (bytes4, BeforeSwapDelta, uint24)
     {
-        return
-            Hooks.Permissions({
-                beforeInitialize: false,
-                afterInitialize: true,
-                beforeAddLiquidity: false,
-                beforeRemoveLiquidity: false,
-                afterRemoveLiquidity: false,
-                beforeSwap: false,
-                beforeSwap: false,
-                afterSwap: false,
-                beforeDonate: false,
-                afterDonate: false,
-                beforeSwapReturnDelta: false,
-                afterSwapReturnDelta: false,
-                afterAddLiquidityReturnDelta: false,
-                afterRemoveLiquidityReturnDelta: false
-            });
+        beforeSwapCount[key.toId()]++;
+        return (BaseHook.beforeSwap.selector, BeforeSwapDeltaLibrary.ZERO_DELTA, 0);
     }
 
-    function afterInitialize(
+    function afterSwap(address, PoolKey calldata key, IPoolManager.SwapParams calldata, BalanceDelta, bytes calldata)
+        external
+        override
+        returns (bytes4, int128)
+    {
+        afterSwapCount[key.toId()]++;
+        return (BaseHook.afterSwap.selector, 0);
+    }
+
+    function beforeAddLiquidity(
         address,
-        PoolKey calldata,
-        uint160,
-        int24,
+        PoolKey calldata key,
+        IPoolManager.ModifyLiquidityParams calldata,
         bytes calldata
-    ) external override onlyByManager returns (bytes4) {
-        // Mint reward tokens to the minter
-        _mint(tx.origin, REWARD_AMOUNT);
-        return BaseHook.afterInitialize.selector;
+    ) external override returns (bytes4) {
+        beforeAddLiquidityCount[key.toId()]++;
+        return BaseHook.beforeAddLiquidity.selector;
     }
 
-    function validateHookAddress(BaseHook _this) internal pure override {}
-}
+    function afterAddLiquidity(
+        address,
+        PoolKey calldata key,
+        IPoolManager.ModifyLiquidityParams calldata,
+        BalanceDelta,
+        bytes calldata
+    ) external override returns (bytes4, BalanceDelta) {
+        afterAddLiquidityCount[key.toId()]++;
+        return (BaseHook.afterAddLiquidity.selector, BalanceDelta.ZERO);
+    }
+   function validateHookAddress(BaseHook _this) internal pure override {
+            }
+        }

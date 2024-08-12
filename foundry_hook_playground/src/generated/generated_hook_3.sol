@@ -1,48 +1,81 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.19;
 
 import {BaseHook} from "v4-periphery/BaseHook.sol";
-import {Hooks} from "v4-core/libraries/Hooks.sol";
-import {IPoolManager} from "v4-core/interfaces/IPoolManager.sol";
-import {PoolKey} from "v4-core/types/PoolKey.sol";
-import {PoolId, PoolIdLibrary} from "v4-core/types/PoolId.sol";
-import {IERC20} from "openzeppelin-contracts/token/ERC20/IERC20.sol";
+import {Hooks} from "@uniswap/v4-core/contracts/libraries/Hooks.sol";
+import {IPoolManager} from "@uniswap/v4-core/contracts/interfaces/IPoolManager.sol";
+import {PoolKey} from "@uniswap/v4-core/contracts/types/PoolKey.sol";
+import {PoolId, PoolIdLibrary} from "@uniswap/v4-core/contracts/types/PoolId.sol";
+import {BalanceDelta} from "@uniswap/v4-core/contracts/types/BalanceDelta.sol";
+import {BeforeSwapDelta, BeforeSwapDeltaLibrary} from "@uniswap/v4-core/contracts/types/BeforeSwapDelta.sol";
 
-contract MintRewardHook is BaseHook {
+contract CounterHook is BaseHook {
     using PoolIdLibrary for PoolKey;
 
-    IERC20 public immutable rewardToken;
-    
-    uint256 public constant REWARD_AMOUNT = 10 * 10**18;
+    // Counters for each pool
+    mapping(PoolId => uint256) public beforeSwapCount;
+    mapping(PoolId => uint256) public afterSwapCount;
+    mapping(PoolId => uint256) public beforeAddLiquidityCount;
+    mapping(PoolId => uint256) public afterAddLiquidityCount;
 
-    constructor(IPoolManager _poolManager, IERC20 _rewardToken) BaseHook(_poolManager) {
-        rewardToken = _rewardToken;
-    }
+    constructor(IPoolManager _poolManager) BaseHook(_poolManager) {}
 
     function getHookPermissions() public pure override returns (Hooks.Permissions memory) {
         return Hooks.Permissions({
             beforeInitialize: false,
             afterInitialize: false,
             beforeAddLiquidity: true,
-            afterAddLiquidity: false,
+            afterAddLiquidity: true,
             beforeRemoveLiquidity: false,
             afterRemoveLiquidity: false,
-            beforeSwap: false,
-            afterSwap: false,
+            beforeSwap: true,
+            afterSwap: true,
             beforeDonate: false,
-            afterDonate: false
+            afterDonate: false,
+            beforeSwapReturnDelta: false,
+            afterSwapReturnDelta: false,
+            afterAddLiquidityReturnDelta: false,
+            afterRemoveLiquidityReturnDelta: false
         });
     }
 
+    function beforeSwap(address, PoolKey calldata key, IPoolManager.SwapParams calldata, bytes calldata)
+        external
+        override
+        returns (bytes4, BeforeSwapDelta, uint24)
+    {
+        beforeSwapCount[key.toId()]++;
+        return (BaseHook.beforeSwap.selector, BeforeSwapDeltaLibrary.ZERO_DELTA, 0);
+    }
+
+    function afterSwap(address, PoolKey calldata key, IPoolManager.SwapParams calldata, BalanceDelta, bytes calldata)
+        external
+        override
+        returns (bytes4, int128)
+    {
+        afterSwapCount[key.toId()]++;
+        return (BaseHook.afterSwap.selector, 0);
+    }
+
     function beforeAddLiquidity(
-        address sender,
-        PoolKey calldata,
+        address,
+        PoolKey calldata key,
         IPoolManager.ModifyLiquidityParams calldata,
         bytes calldata
     ) external override returns (bytes4) {
-        require(rewardToken.transfer(sender, REWARD_AMOUNT), "Reward transfer failed");
-        
+        beforeAddLiquidityCount[key.toId()]++;
         return BaseHook.beforeAddLiquidity.selector;
+    }
+
+    function afterAddLiquidity(
+        address,
+        PoolKey calldata key,
+        IPoolManager.ModifyLiquidityParams calldata,
+        BalanceDelta,
+        bytes calldata
+    ) external override returns (bytes4) {
+        afterAddLiquidityCount[key.toId()]++;
+        return BaseHook.afterAddLiquidity.selector;
     }
    function validateHookAddress(BaseHook _this) internal pure override {
             }
