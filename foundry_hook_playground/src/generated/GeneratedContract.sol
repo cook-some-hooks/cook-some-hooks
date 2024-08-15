@@ -12,9 +12,7 @@ import {BeforeSwapDelta, BeforeSwapDeltaLibrary} from "v4-core/src/types/BeforeS
 contract GeneratedContract is BaseHook {
     using PoolIdLibrary for PoolKey;
 
-    mapping(PoolId => uint256) public swapCount;
-    mapping(PoolId => uint256) public addLiquidityCount;
-    mapping(PoolId => uint256) public removeLiquidityCount;
+    mapping(PoolId => uint256) public swapCounter;
 
     constructor(IPoolManager _poolManager) BaseHook(_poolManager) {}
 
@@ -22,12 +20,12 @@ contract GeneratedContract is BaseHook {
         return Hooks.Permissions({
             beforeInitialize: false,
             afterInitialize: false,
-            beforeAddLiquidity: true,
+            beforeAddLiquidity: false,
             afterAddLiquidity: false,
-            beforeRemoveLiquidity: true,
+            beforeRemoveLiquidity: false,
             afterRemoveLiquidity: false,
             beforeSwap: true,
-            afterSwap: false,
+            afterSwap: true,
             beforeDonate: false,
             afterDonate: false,
             beforeSwapReturnDelta: false,
@@ -43,27 +41,17 @@ contract GeneratedContract is BaseHook {
         IPoolManager.SwapParams calldata,
         bytes calldata
     ) external override returns (bytes4, BeforeSwapDelta, uint24) {
-        swapCount[key.toId()]++;
         return (BaseHook.beforeSwap.selector, BeforeSwapDeltaLibrary.ZERO_DELTA, 0);
     }
 
-    function beforeAddLiquidity(
+    function afterSwap(
         address,
         PoolKey calldata key,
-        IPoolManager.ModifyLiquidityParams calldata,
+        IPoolManager.SwapParams calldata,
+        BalanceDelta,
         bytes calldata
-    ) external override returns (bytes4) {
-        addLiquidityCount[key.toId()]++;
-        return BaseHook.beforeAddLiquidity.selector;
-    }
-
-    function beforeRemoveLiquidity(
-        address,
-        PoolKey calldata key,
-        IPoolManager.ModifyLiquidityParams calldata,
-        bytes calldata
-    ) external override returns (bytes4) {
-        removeLiquidityCount[key.toId()]++;
-        return BaseHook.beforeRemoveLiquidity.selector;
+    ) external override returns (bytes4, int128) {
+        swapCounter[key.toId()]++;
+        return (BaseHook.afterSwap.selector, 0);
     }
 }

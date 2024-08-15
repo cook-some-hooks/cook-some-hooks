@@ -2,9 +2,8 @@ Your task is to generate the unit test of a Hook contract.
 
 In other to call the hook, you will need to deploy the contract and then call the function you want. 
 
-Here is the starting code:
+Here is the starting code. Be careful not to change the import statements:
 
-import {GeneratedContract} from "../generated/GeneratedContract.sol";
 import "forge-std/Test.sol";
 import {GeneratedContract} from "../generated/GeneratedContract.sol";
 import {IHooks} from "v4-core/src/interfaces/IHooks.sol";
@@ -13,6 +12,7 @@ import {IPoolManager} from "v4-core/src/interfaces/IPoolManager.sol";
 import {PoolKey} from "v4-core/src/types/PoolKey.sol";
 import {PoolId, PoolIdLibrary} from "v4-core/src/types/PoolId.sol";
 import {Deployers} from "v4-core/test/utils/Deployers.sol";
+import {TickMath} from "v4-core/src/libraries/TickMath.sol";
 
 contract GeneratedContractTest is Test, Deployers {
     using PoolIdLibrary for PoolKey;
@@ -34,8 +34,8 @@ contract GeneratedContractTest is Test, Deployers {
                     Hooks.BEFORE_REMOVE_LIQUIDITY_FLAG
             ) ^ (0x4444 << 144) // Namespace the hook to avoid collisions
         );
-        deployCodeTo("Counter.sol:Counter", abi.encode(manager), flags);
-        hook = Counter(flags);
+        deployCodeTo("GeneratedContract.sol:GeneratedContract", abi.encode(manager), flags);
+        hook = GeneratedContract(flags);
 
         // Create the pool
         key = PoolKey(currency0, currency1, 3000, 60, IHooks(hook));
